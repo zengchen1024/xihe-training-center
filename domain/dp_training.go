@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 var (
@@ -40,6 +41,25 @@ func (r *TrainingConfig) Setdefault() {
 	if r.MaxDescLength == 0 {
 		r.MaxDescLength = 100
 	}
+}
+
+// Account
+type Account interface {
+	Account() string
+}
+
+func NewAccount(v string) (Account, error) {
+	if v == "" || strings.ToLower(v) == "root" || !reName.MatchString(v) {
+		return nil, errors.New("invalid user name")
+	}
+
+	return dpAccount(v), nil
+}
+
+type dpAccount string
+
+func (r dpAccount) Account() string {
+	return string(r)
 }
 
 // TrainingName
@@ -245,16 +265,36 @@ type TrainingStatus interface {
 	TrainingStatus() string
 }
 
+func NewStatusCreating() TrainingStatus {
+	return trainingStatus("Creating")
+}
+
+func NewStatusPending() TrainingStatus {
+	return trainingStatus("Pending")
+}
+
 func NewStatusRunning() TrainingStatus {
-	return trainingStatus("running")
+	return trainingStatus("Running")
 }
 
 func NewStatusFailed() TrainingStatus {
-	return trainingStatus("failed")
+	return trainingStatus("Failed")
 }
 
 func NewStatusCompleted() TrainingStatus {
-	return trainingStatus("completed")
+	return trainingStatus("Completed")
+}
+
+func NewStatusTerminating() TrainingStatus {
+	return trainingStatus("Terminating")
+}
+
+func NewStatusTerminated() TrainingStatus {
+	return trainingStatus("Terminated")
+}
+
+func NewStatusAbnormal() TrainingStatus {
+	return trainingStatus("Abnormal")
 }
 
 type trainingStatus string

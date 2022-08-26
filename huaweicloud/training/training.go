@@ -2,6 +2,8 @@ package training
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/chnsz/golangsdk"
 
 	"github.com/opensourceways/xihe-training-center/domain"
@@ -9,6 +11,17 @@ import (
 	"github.com/opensourceways/xihe-training-center/huaweicloud/client"
 	"github.com/opensourceways/xihe-training-center/huaweicloud/modelarts"
 )
+
+var statusMap = map[string]domain.TrainingStatus{
+	"creating":    domain.NewStatusCreating(),
+	"pending":     domain.NewStatusPending(),
+	"running":     domain.NewStatusRunning(),
+	"failed":      domain.NewStatusFailed(),
+	"completed":   domain.NewStatusCompleted(),
+	"terminating": domain.NewStatusTerminating(),
+	"terminated":  domain.NewStatusTerminated(),
+	"abnormal":    domain.NewStatusAbnormal(),
+}
 
 func NewTraining(cfg *HuaweiCloud) (dt.Training, error) {
 	s := "modelarts"
@@ -132,8 +145,10 @@ func (impl trainingImpl) Get(jobId string) (r domain.TrainingDetail, err error) 
 		return
 	}
 
-	switch v.Status.Phase {
-
+	if status, ok := statusMap[strings.ToLower(v.Status.Phase)]; ok {
+		r.Status = status
+	} else {
+		r.Status = domain.NewStatusAbnormal()
 	}
 
 	r.Duration, err = domain.NewTrainingDuration(v.Status.Duration)

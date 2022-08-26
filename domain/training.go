@@ -1,13 +1,5 @@
 package domain
 
-type Account interface {
-	Account() string
-}
-
-func NewAccount(v string) (Account, error) {
-	return nil, nil
-}
-
 type UserTraining struct {
 	User Account
 

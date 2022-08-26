@@ -15,12 +15,7 @@ func Init(l *logrus.Entry) {
 	log = l
 }
 
-type baseController struct {
-}
-
-func (ctl baseController) getQueryParameter(ctx *gin.Context, key string) string {
-	return ctx.Request.URL.Query().Get(key)
-}
+type baseController struct{}
 
 func (ctl baseController) sendRespWithInternalError(ctx *gin.Context, data responseData) {
 	log.Errorf("code: %s, err: %s", data.Code, data.Msg)

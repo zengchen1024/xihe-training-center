@@ -1,15 +1,9 @@
 package controller
 
 const (
-	errorNotAllowed         = "not_allowed"
-	errorInvalidToken       = "invalid_token"
-	errorSystemError        = "system_error"
-	errorBadRequestBody     = "bad_request_body"
-	errorBadRequestHeader   = "bad_request_header"
-	errorBadRequestParam    = "bad_request_param"
-	errorDuplicateCreating  = "duplicate_creating"
-	errorResourceNotExists  = "resource_not_exists"
-	errorConcurrentUpdating = "concurrent_updateing"
+	errorSystemError     = "system_error"
+	errorBadRequestBody  = "bad_request_body"
+	errorBadRequestParam = "bad_request_param"
 )
 
 var (
