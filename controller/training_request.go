@@ -5,15 +5,15 @@ import (
 	"github.com/opensourceways/xihe-training-center/domain"
 )
 
-type trainingLogResp struct {
-	LogURL string `json:"job_id"`
+type TrainingLogResp struct {
+	LogURL string `json:"log_url"`
 }
 
-type trainingCreateResp struct {
+type TrainingCreateResp struct {
 	JobId string `json:"job_id"`
 }
 
-type trainingCreateRequest struct {
+type TrainingCreateRequest struct {
 	User      string `json:"user"`
 	ProjectId string `json:"project_id"`
 
@@ -24,24 +24,42 @@ type trainingCreateRequest struct {
 	BootFile string `json:"boot_file"`
 	LogDir   string `json:"log_dir"`
 
-	Hypeparameters []keyValue `json:"hyperparameter"`
-	Env            []keyValue `json:"evn"`
-	Inputs         []keyValue `json:"inputs"`
-	Outputs        []keyValue `json:"outputs"`
+	Hypeparameters []KeyValue `json:"hyperparameter"`
+	Env            []KeyValue `json:"evn"`
+	Inputs         []KeyValue `json:"inputs"`
+	Outputs        []KeyValue `json:"outputs"`
 
-	Compute struct {
-		Type    string `json:"type"`
-		Version string `json:"version"`
-		Flavor  string `json:"flavor"`
-	} `json:"compute"`
+	Compute Compute `json:"compute"`
 }
 
-type keyValue struct {
+type Compute struct {
+	Type    string `json:"type"`
+	Version string `json:"version"`
+	Flavor  string `json:"flavor"`
+}
+
+func (c *Compute) toCompute() (r domain.Compute, err error) {
+	if r.Type, err = domain.NewComputeType(c.Type); err != nil {
+		return
+	}
+
+	if r.Version, err = domain.NewComputeVersion(c.Version); err != nil {
+		return
+	}
+
+	if r.Flavor, err = domain.NewComputeFlavor(c.Flavor); err != nil {
+		return
+	}
+
+	return
+}
+
+type KeyValue struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
-func (kv *keyValue) toKeyValue() (r domain.KeyValue, err error) {
+func (kv *KeyValue) toKeyValue() (r domain.KeyValue, err error) {
 	if r.Key, err = domain.NewCustomizedKey(kv.Key); err != nil {
 		return
 	}
@@ -51,7 +69,7 @@ func (kv *keyValue) toKeyValue() (r domain.KeyValue, err error) {
 	return
 }
 
-func (req *trainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error) {
+func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error) {
 	if cmd.User, err = domain.NewAccount(req.User); err != nil {
 		return
 	}
@@ -78,17 +96,7 @@ func (req *trainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 		return
 	}
 
-	c := &req.Compute
-
-	if cmd.Compute.Type, err = domain.NewComputeType(c.Type); err != nil {
-		return
-	}
-
-	if cmd.Compute.Version, err = domain.NewComputeVersion(c.Version); err != nil {
-		return
-	}
-
-	if cmd.Compute.Flavor, err = domain.NewComputeFlavor(c.Flavor); err != nil {
+	if cmd.Compute, err = req.Compute.toCompute(); err != nil {
 		return
 	}
 
@@ -111,7 +119,7 @@ func (req *trainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 	return
 }
 
-func (req *trainingCreateRequest) toKeyValue(kv []keyValue) (r []domain.KeyValue, err error) {
+func (req *TrainingCreateRequest) toKeyValue(kv []KeyValue) (r []domain.KeyValue, err error) {
 	n := len(kv)
 	if n == 0 {
 		return nil, nil

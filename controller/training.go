@@ -33,15 +33,15 @@ type TrainingController struct {
 // @Summary Create
 // @Description create training
 // @Tags  Training
-// @Param	body	body 	trainingCreateRequest	true	"body of creating training"
+// @Param	body	body 	TrainingCreateRequest	true	"body of creating training"
 // @Accept json
-// @Success 201 {object} trainingCreateResp
+// @Success 201 {object} TrainingCreateResp
 // @Failure 400 bad_request_body    can't parse request body
 // @Failure 401 bad_request_param   some parameter of body is invalid
 // @Failure 500 system_error        system error
 // @Router /v1/training [post]
 func (ctl *TrainingController) Create(ctx *gin.Context) {
-	req := trainingCreateRequest{}
+	req := TrainingCreateRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, respBadRequestBody)
 
@@ -63,7 +63,7 @@ func (ctl *TrainingController) Create(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, newResponseData(trainingCreateResp{jobId}))
+	ctx.JSON(http.StatusCreated, newResponseData(TrainingCreateResp{jobId}))
 }
 
 // @Summary Delete
@@ -128,7 +128,7 @@ func (ctl *TrainingController) Get(ctx *gin.Context) {
 // @Tags  Training
 // @Param	id	path	string	true	"id of training"
 // @Accept json
-// @Success 200 {object} trainingLogResp
+// @Success 200 {object} TrainingLogResp
 // @Failure 500 system_error        system error
 // @Router /v1/training/{id}/log [get]
 func (ctl *TrainingController) GetLog(ctx *gin.Context) {
@@ -139,5 +139,5 @@ func (ctl *TrainingController) GetLog(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusAccepted, newResponseData(trainingLogResp{v}))
+	ctx.JSON(http.StatusAccepted, newResponseData(TrainingLogResp{v}))
 }
