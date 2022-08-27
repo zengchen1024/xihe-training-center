@@ -9,8 +9,8 @@ import (
 
 var (
 	reName      = regexp.MustCompile("^[a-zA-Z0-9_-]+$")
-	reDirectory = regexp.MustCompile("^[a-zA-Z0-9_-/]+$")
-	reFilePath  = regexp.MustCompile("^[a-zA-Z0-9_-/.]+$")
+	reDirectory = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
+	reFilePath  = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")
 
 	config = Config{}
 )

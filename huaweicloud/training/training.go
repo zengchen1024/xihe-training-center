@@ -28,11 +28,16 @@ func NewTraining(cfg *HuaweiCloud) (dt.Training, error) {
 	v := client.Config{
 		AccessKey:  cfg.AccessKey,
 		SecretKey:  cfg.SecretKey,
-		TenantName: cfg.Account,
-		TenantID:   cfg.AccountId,
+		TenantName: cfg.ProjectName,
+		TenantID:   cfg.ProjectId,
+		Region:     cfg.Region,
 		Endpoints: map[string]string{
 			s: cfg.Endpoint,
 		},
+		IdentityEndpoint: fmt.Sprintf("https://iam.%s.myhuaweicloud.com:443/v3", cfg.Region),
+	}
+	if err := v.LoadAndValidate(); err != nil {
+		return nil, err
 	}
 
 	cli, err := v.NewServiceClient(s, client.ServiceCatalog{
