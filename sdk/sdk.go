@@ -96,5 +96,13 @@ func (t TrainingCenter) forwardTo(req *http.Request, jsonResp interface{}) error
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "xihe-training-center")
 
+	if jsonResp != nil {
+		v := struct {
+			Data interface{} `json:"data"`
+		}{jsonResp}
+
+		return t.cli.ForwardTo(req, &v)
+	}
+
 	return t.cli.ForwardTo(req, jsonResp)
 }
