@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/opensourceways/community-robot-lib/utils"
 
@@ -17,7 +18,7 @@ type TrainingLog = controller.TrainingLogResp
 
 func NewTrainingCenter(endpoint string) TrainingCenter {
 	return TrainingCenter{
-		endpoint: endpoint,
+		endpoint: strings.TrimSuffix(endpoint, "/"),
 		cli:      utils.HttpClient{MaxRetries: 3},
 	}
 }
