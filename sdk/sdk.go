@@ -15,6 +15,8 @@ import (
 type TrainingCreateOption = controller.TrainingCreateRequest
 type TrainingDetail = app.TrainingDTO
 type TrainingLog = controller.TrainingLogResp
+type KeyValue = controller.KeyValue
+type Compute = controller.Compute
 
 func NewTrainingCenter(endpoint string) TrainingCenter {
 	return TrainingCenter{
