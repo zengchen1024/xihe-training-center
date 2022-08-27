@@ -3,7 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
-	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -77,20 +77,6 @@ func (c *Config) LoadAndValidate() error {
 		return fmt.Errorf("region should be provided")
 	}
 
-	// Assume role
-	if c.AssumeRoleAgency != "" {
-		return errors.New("assume agency is unsupported")
-	}
-
-	if c.HwClient != nil && c.HwClient.ProjectID != "" {
-		c.RegionProjectIDMap[c.Region] = c.HwClient.ProjectID
-	}
-	log.Printf("[DEBUG] init region and project map: %#v", c.RegionProjectIDMap)
-
-	if c.UserID == "" || c.Username != "" {
-		return errors.New("missing user info")
-	}
-
 	return nil
 }
 
@@ -113,9 +99,12 @@ func (c *Config) newServiceClientByEndpoint(
 	client *golangsdk.ProviderClient,
 	endpoint string, catalog ServiceCatalog,
 ) (*golangsdk.ServiceClient, error) {
+	e := strings.TrimSuffix(endpoint, "/")
+	e += "/"
+
 	sc := &golangsdk.ServiceClient{
 		ProviderClient: client,
-		Endpoint:       endpoint,
+		Endpoint:       e,
 	}
 
 	sc.ResourceBase = sc.Endpoint
