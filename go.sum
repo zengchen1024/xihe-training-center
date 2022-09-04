@@ -249,6 +249,8 @@ github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7J
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/opensourceways/community-robot-lib v0.0.0-20220819060619-b8464465b598 h1:nMoDqenXkQTPQSKYbK87EJbocAE2YXXcGZDWTX0XfpY=
 github.com/opensourceways/community-robot-lib v0.0.0-20220819060619-b8464465b598/go.mod h1:aeTHmjsRPhPpRuUDT95A5YFEFhGzc2OM7OL9HHjsmYM=
+github.com/opensourceways/community-robot-lib v0.0.0-20220827104556-26074d144bd2 h1:LhIeGLqZmo5Y4xN56Ztl8FZOJMWH7oZYkVS2Niedygw=
+github.com/opensourceways/community-robot-lib v0.0.0-20220827104556-26074d144bd2/go.mod h1:aeTHmjsRPhPpRuUDT95A5YFEFhGzc2OM7OL9HHjsmYM=
 github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96/go.mod h1:yvVsEMhp7frMblzN1sco4C7cRlnlpqkkn3O2JQNdRu0=
 github.com/otiai10/copy v1.7.0/go.mod h1:rmRl6QPdJj6EiUqXQ/4Nn2lLXoNQjFCQbbNrxgc/t3U=
 github.com/otiai10/curr v0.0.0-20150429015615-9b4961190c95/go.mod h1:9qAhocn7zKJG+0mI8eUu6xqkFDYS2kb2saOteoSB3cE=
