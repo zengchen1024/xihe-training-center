@@ -3,9 +3,13 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
+
+const pathSpliter = "/"
 
 var (
 	reName      = regexp.MustCompile("^[a-zA-Z0-9_-]+$")
@@ -15,8 +19,8 @@ var (
 	config = Config{}
 )
 
-func Init(cfg TrainingConfig) {
-	config = Config{cfg}
+func Init(cfg *TrainingConfig) {
+	config = Config{*cfg}
 }
 
 type Config struct {
@@ -320,4 +324,55 @@ type trainingDuration int
 
 func (t trainingDuration) TrainingDuration() int {
 	return int(t)
+}
+
+// InputValue
+// format: owner/[model,dataset]/repoid[/xx/xx]
+type InputValue interface {
+	InputValue() string
+	RepoId() string
+	OBSPath() string
+}
+
+func NewInputValue(s string) (InputValue, error) {
+	v := strings.Split(s, pathSpliter)
+	if len(v) < 3 {
+		return nil, errors.New("invalid input value")
+	}
+
+	if _, err := NewAccount(v[0]); err != nil {
+		return nil, errors.New("invalid owner of input value")
+	}
+
+	if t := v[1]; t != resourceModel && t != resourceDataset {
+		return nil, errors.New("invalid resource type of input value")
+	}
+
+	if _, err := strconv.Atoi(v[2]); err != nil {
+		return nil, errors.New("invalid repo id of input value")
+	}
+
+	return inputValue{
+		v:       s,
+		repoId:  v[2],
+		obsPath: filepath.Join(v[0], v[1], v[2]),
+	}, nil
+}
+
+type inputValue struct {
+	v       string
+	repoId  string
+	obsPath string
+}
+
+func (r inputValue) InputValue() string {
+	return r.v
+}
+
+func (r inputValue) RepoId() string {
+	return r.repoId
+}
+
+func (r inputValue) OBSPath() string {
+	return r.obsPath
 }

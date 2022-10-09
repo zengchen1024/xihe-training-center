@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"errors"
+
 	"github.com/opensourceways/xihe-training-center/app"
 	"github.com/opensourceways/xihe-training-center/domain"
 )
@@ -22,12 +24,10 @@ type TrainingCreateRequest struct {
 
 	CodeDir  string `json:"code_dir"`
 	BootFile string `json:"boot_file"`
-	LogDir   string `json:"log_dir"`
 
 	Hypeparameters []KeyValue `json:"hyperparameter"`
 	Env            []KeyValue `json:"evn"`
-	Inputs         []KeyValue `json:"inputs"`
-	Outputs        []KeyValue `json:"outputs"`
+	Inputs         []Input    `json:"inputs"`
 
 	Compute Compute `json:"compute"`
 }
@@ -69,6 +69,49 @@ func (kv *KeyValue) toKeyValue() (r domain.KeyValue, err error) {
 	return
 }
 
+type Input struct {
+	Key   string        `json:"key"`
+	Value ResourceInput `json:"value"`
+}
+
+func (kv *Input) toInput() (r domain.Input, err error) {
+	if r.Key, err = domain.NewCustomizedKey(kv.Key); err != nil {
+		return
+	}
+
+	r.Value, err = kv.Value.toInput()
+
+	return
+}
+
+type ResourceInput struct {
+	Owner string `json:"owner"`
+	Type  string `json:"type"`
+	Id    string `json:"id"`
+	File  string `json:"File"`
+}
+
+func (r *ResourceInput) toInput() (i domain.ResourceInput, err error) {
+	if i.User, err = domain.NewAccount(r.Owner); err != nil {
+		return
+	}
+
+	if i.Type, err = domain.NewResourceType(r.Type); err != nil {
+		return
+	}
+
+	if i.Type.ResourceType() == domain.ResourceTypeProject.ResourceType() {
+		err = errors.New("invalid resource type of input value")
+
+		return
+	}
+
+	i.RepoId = r.Id
+	i.File = r.File
+
+	return
+}
+
 func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error) {
 	if cmd.User, err = domain.NewAccount(req.User); err != nil {
 		return
@@ -92,10 +135,6 @@ func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 		return
 	}
 
-	if cmd.LogDir, err = domain.NewDirectory(req.LogDir); err != nil {
-		return
-	}
-
 	if cmd.Compute, err = req.Compute.toCompute(); err != nil {
 		return
 	}
@@ -108,11 +147,7 @@ func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 		return
 	}
 
-	if cmd.Inputs, err = req.toKeyValue(req.Inputs); err != nil {
-		return
-	}
-
-	if cmd.Outputs, err = req.toKeyValue(req.Outputs); err != nil {
+	if cmd.Inputs, err = req.toInputs(req.Inputs); err != nil {
 		return
 	}
 
@@ -128,6 +163,22 @@ func (req *TrainingCreateRequest) toKeyValue(kv []KeyValue) (r []domain.KeyValue
 	r = make([]domain.KeyValue, n)
 	for i := range kv {
 		if r[i], err = kv[i].toKeyValue(); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (req *TrainingCreateRequest) toInputs(kv []Input) (r []domain.Input, err error) {
+	n := len(kv)
+	if n == 0 {
+		return nil, nil
+	}
+
+	r = make([]domain.Input, n)
+	for i := range kv {
+		if r[i], err = kv[i].toInput(); err != nil {
 			return
 		}
 	}
