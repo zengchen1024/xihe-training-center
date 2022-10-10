@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/opensourceways/xihe-training-center/domain"
 	"github.com/opensourceways/xihe-training-center/infrastructure/synclockimpl"
 )
 
@@ -16,25 +15,8 @@ func NewSyncLockMapper() synclockimpl.SyncLockMapper {
 
 type syncLock struct{}
 
-func (rs syncLock) getTable(t string, v *RepoSyncLock) interface{} {
-	switch t {
-	case domain.ResourceTypeProject.ResourceType():
-		return ProjectRepoSyncLock{v}
-
-	case domain.ResourceTypeModel.ResourceType():
-		return ModelRepoSyncLock{v}
-
-	case domain.ResourceTypeDataset.ResourceType():
-		return DatasetRepoSyncLock{v}
-
-	default:
-		return nil
-	}
-}
-
 func (rs syncLock) Insert(do *synclockimpl.RepoSyncLockDO) (string, error) {
-	data := rs.toSyncLockTable(do)
-	table := rs.getTable(do.RepoType, &data)
+	table := rs.toSyncLockTable(do)
 
 	r := cli.db.Model(table).Create(table)
 	if r.Error != nil {
@@ -47,19 +29,18 @@ func (rs syncLock) Insert(do *synclockimpl.RepoSyncLockDO) (string, error) {
 		)
 	}
 
-	return table.(repoSyncLock).GetId(), nil
+	return strconv.Itoa(table.Id), nil
 }
 
 func (rs syncLock) Get(owner, repoType, repoId string) (do synclockimpl.RepoSyncLockDO, err error) {
-	cond := &RepoSyncLock{
+	cond := &ProjectRepoSyncLock{
 		Owner:  owner,
 		RepoId: repoId,
 	}
 
-	data := new(RepoSyncLock)
-	table := rs.getTable(repoType, nil)
+	data := new(ProjectRepoSyncLock)
 
-	err = cli.db.Model(table).Where(cond).First(data).Error
+	err = cli.db.Model(data).Where(cond).First(data).Error
 
 	if err == nil {
 		do = rs.toSyncLockDo(data)
@@ -73,15 +54,13 @@ func (rs syncLock) Get(owner, repoType, repoId string) (do synclockimpl.RepoSync
 }
 
 func (rs syncLock) Update(do *synclockimpl.RepoSyncLockDO) error {
-	cond := &RepoSyncLock{
+	cond := &ProjectRepoSyncLock{
 		Owner:   do.Owner,
 		RepoId:  do.RepoId,
 		Version: do.Version,
 	}
 
-	table := rs.getTable(do.RepoType, nil)
-
-	tx := cli.db.Model(table).Where(cond).Updates(
+	tx := cli.db.Model(cond).Where(cond).Updates(
 		map[string]interface{}{
 			fieldVersion:    gorm.Expr("? + ?", fieldVersion, 1),
 			fieldLastCommit: do.LastCommit,
@@ -101,8 +80,8 @@ func (rs syncLock) Update(do *synclockimpl.RepoSyncLockDO) error {
 	return nil
 }
 
-func (rs syncLock) toSyncLockTable(do *synclockimpl.RepoSyncLockDO) RepoSyncLock {
-	return RepoSyncLock{
+func (rs syncLock) toSyncLockTable(do *synclockimpl.RepoSyncLockDO) ProjectRepoSyncLock {
+	return ProjectRepoSyncLock{
 		Owner:      do.Owner,
 		RepoId:     do.RepoId,
 		Status:     do.Status,
@@ -111,7 +90,7 @@ func (rs syncLock) toSyncLockTable(do *synclockimpl.RepoSyncLockDO) RepoSyncLock
 	}
 }
 
-func (rs syncLock) toSyncLockDo(data *RepoSyncLock) synclockimpl.RepoSyncLockDO {
+func (rs syncLock) toSyncLockDo(data *ProjectRepoSyncLock) synclockimpl.RepoSyncLockDO {
 	return synclockimpl.RepoSyncLockDO{
 		Id:         strconv.Itoa(data.Id),
 		Owner:      data.Owner,

@@ -94,7 +94,7 @@ func (s *syncRepoImpl) SyncProject(repo *syncrepo.ProjectInfo) (lastCommit strin
 		cfg.RepoPath,
 		repo.Owner.Account(),
 		domain.ResourceTypeProject.ResourceType(), repo.RepoId,
-	) + "/"
+	)
 
 	v, err, _ := libutils.RunCmd(
 		cfg.SyncFileShell, tempDir,

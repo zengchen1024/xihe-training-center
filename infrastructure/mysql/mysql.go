@@ -36,6 +36,8 @@ func Init(cfg *Config) error {
 		db: db,
 	}
 
+	projectTableName = cfg.ProjectTableName
+
 	return nil
 }
 

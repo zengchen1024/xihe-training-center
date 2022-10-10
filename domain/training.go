@@ -64,6 +64,8 @@ func (r *ResourceInput) ToPath() string {
 	)
 
 	if r.File == "" {
+		// The input is the directory. Appending "/" to make sure
+		// the path is a directory for object storage service.
 		return s + "/"
 	}
 
