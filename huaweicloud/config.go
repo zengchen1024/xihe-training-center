@@ -1,32 +1,73 @@
 package main
 
 import (
-	"io/ioutil"
-	"os"
-
-	"sigs.k8s.io/yaml"
+	"github.com/opensourceways/community-robot-lib/utils"
 
 	"github.com/opensourceways/xihe-training-center/domain"
-	"github.com/opensourceways/xihe-training-center/huaweicloud/training"
+	"github.com/opensourceways/xihe-training-center/huaweicloud/syncrepoimpl"
+	"github.com/opensourceways/xihe-training-center/huaweicloud/trainingimpl"
+	"github.com/opensourceways/xihe-training-center/infrastructure/mysql"
+	"github.com/opensourceways/xihe-training-center/infrastructure/platformimpl"
 )
 
-type Config struct {
-	Training domain.TrainingConfig `json:"training"`
-	Cloud    training.HuaweiCloud  `json:"cloud"`
+type configSetDefault interface {
+	SetDefault()
 }
 
-func (cfg *Config) setDefault() {
-	cfg.Training.Setdefault()
+type configValidate interface {
+	Validate() error
 }
 
-func (cfg *Config) validate() error {
+type configuration struct {
+	Sync     syncrepoimpl.Config `json:"sync"     required:"true"`
+	Mysql    mysql.Config        `json:"mysql"    required:"true"`
+	Gitlab   platformimpl.Config `json:"gitlab"   required:"true"`
+	Domain   domain.Config       `json:"training" required:"true"`
+	Training trainingimpl.Config `json:"cloud"    required:"true"`
+}
+
+func (cfg *configuration) configItems() []interface{} {
+	return []interface{}{
+		&cfg.Sync,
+		&cfg.Mysql,
+		&cfg.Gitlab,
+		&cfg.Domain,
+		&cfg.Training,
+	}
+}
+
+func (cfg *configuration) validate() error {
+	if _, err := utils.BuildRequestBody(cfg, ""); err != nil {
+		return err
+	}
+
+	items := cfg.configItems()
+
+	for _, i := range items {
+		if v, ok := i.(configValidate); ok {
+			if err := v.Validate(); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
-func loadConfig(path string) (*Config, error) {
-	v := new(Config)
+func (cfg *configuration) setDefault() {
+	items := cfg.configItems()
 
-	if err := loadFromYaml(path, v); err != nil {
+	for _, i := range items {
+		if v, ok := i.(configSetDefault); ok {
+			v.SetDefault()
+		}
+	}
+}
+
+func loadConfig(path string) (*configuration, error) {
+	v := new(configuration)
+
+	if err := utils.LoadFromYaml(path, v); err != nil {
 		return nil, err
 	}
 
@@ -37,15 +78,4 @@ func loadConfig(path string) (*Config, error) {
 	}
 
 	return v, nil
-}
-
-func loadFromYaml(path string, cfg interface{}) error {
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	content := []byte(os.ExpandEnv(string(b)))
-
-	return yaml.Unmarshal(content, cfg)
 }

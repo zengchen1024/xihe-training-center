@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"errors"
+
 	"github.com/opensourceways/xihe-training-center/app"
 	"github.com/opensourceways/xihe-training-center/domain"
 )
@@ -9,25 +11,20 @@ type TrainingLogResp struct {
 	LogURL string `json:"log_url"`
 }
 
-type TrainingCreateResp struct {
-	JobId string `json:"job_id"`
-}
-
 type TrainingCreateRequest struct {
-	User      string `json:"user"`
-	ProjectId string `json:"project_id"`
+	User          string `json:"user"`
+	ProjectName   string `json:"project_name"`
+	ProjectRepoId string `json:"project_repo_id"`
 
 	Name string `json:"name"`
 	Desc string `json:"desc"`
 
 	CodeDir  string `json:"code_dir"`
 	BootFile string `json:"boot_file"`
-	LogDir   string `json:"log_dir"`
 
 	Hypeparameters []KeyValue `json:"hyperparameter"`
 	Env            []KeyValue `json:"evn"`
-	Inputs         []KeyValue `json:"inputs"`
-	Outputs        []KeyValue `json:"outputs"`
+	Inputs         []Input    `json:"inputs"`
 
 	Compute Compute `json:"compute"`
 }
@@ -39,6 +36,12 @@ type Compute struct {
 }
 
 func (c *Compute) toCompute() (r domain.Compute, err error) {
+	if c.Type == "" || c.Version == "" || c.Flavor == "" {
+		err = errors.New("invalid compute info")
+
+		return
+	}
+
 	if r.Type, err = domain.NewComputeType(c.Type); err != nil {
 		return
 	}
@@ -60,6 +63,12 @@ type KeyValue struct {
 }
 
 func (kv *KeyValue) toKeyValue() (r domain.KeyValue, err error) {
+	if kv.Key == "" {
+		err = errors.New("invalid key value")
+
+		return
+	}
+
 	if r.Key, err = domain.NewCustomizedKey(kv.Key); err != nil {
 		return
 	}
@@ -69,12 +78,71 @@ func (kv *KeyValue) toKeyValue() (r domain.KeyValue, err error) {
 	return
 }
 
+type Input struct {
+	Key   string        `json:"key"`
+	Value ResourceInput `json:"value"`
+}
+
+func (kv *Input) toInput() (r domain.Input, err error) {
+	if kv.Key == "" {
+		err = errors.New("invalid input")
+
+		return
+	}
+
+	if r.Key, err = domain.NewCustomizedKey(kv.Key); err != nil {
+		return
+	}
+
+	r.Value, err = kv.Value.toInput()
+
+	return
+}
+
+type ResourceInput struct {
+	Owner  string `json:"owner"`
+	Type   string `json:"type"`
+	RepoId string `json:"repo_id"`
+	File   string `json:"File"`
+}
+
+func (r *ResourceInput) toInput() (i domain.ResourceInput, err error) {
+	if r.Owner == "" || r.Type == "" || r.RepoId == "" {
+		err = errors.New("invalid resource input")
+
+		return
+	}
+
+	if i.User, err = domain.NewAccount(r.Owner); err != nil {
+		return
+	}
+
+	if i.Type, err = domain.NewResourceType(r.Type); err != nil {
+		return
+	}
+
+	if i.Type.ResourceType() == domain.ResourceTypeProject.ResourceType() {
+		err = errors.New("invalid resource type of input value")
+
+		return
+	}
+
+	i.RepoId = r.RepoId
+	i.File = r.File
+
+	return
+}
+
 func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error) {
 	if cmd.User, err = domain.NewAccount(req.User); err != nil {
 		return
 	}
 
-	cmd.ProjectId = req.ProjectId
+	if cmd.ProjectName, err = domain.NewProjectName(req.ProjectName); err != nil {
+		return
+	}
+
+	cmd.ProjectRepoId = req.ProjectRepoId
 
 	if cmd.Name, err = domain.NewTrainingName(req.Name); err != nil {
 		return
@@ -92,10 +160,6 @@ func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 		return
 	}
 
-	if cmd.LogDir, err = domain.NewDirectory(req.LogDir); err != nil {
-		return
-	}
-
 	if cmd.Compute, err = req.Compute.toCompute(); err != nil {
 		return
 	}
@@ -108,11 +172,7 @@ func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 		return
 	}
 
-	if cmd.Inputs, err = req.toKeyValue(req.Inputs); err != nil {
-		return
-	}
-
-	if cmd.Outputs, err = req.toKeyValue(req.Outputs); err != nil {
+	if cmd.Inputs, err = req.toInputs(req.Inputs); err != nil {
 		return
 	}
 
@@ -128,6 +188,22 @@ func (req *TrainingCreateRequest) toKeyValue(kv []KeyValue) (r []domain.KeyValue
 	r = make([]domain.KeyValue, n)
 	for i := range kv {
 		if r[i], err = kv[i].toKeyValue(); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (req *TrainingCreateRequest) toInputs(kv []Input) (r []domain.Input, err error) {
+	n := len(kv)
+	if n == 0 {
+		return nil, nil
+	}
+
+	r = make([]domain.Input, n)
+	for i := range kv {
+		if r[i], err = kv[i].toInput(); err != nil {
 			return
 		}
 	}

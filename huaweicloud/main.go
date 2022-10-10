@@ -11,7 +11,11 @@ import (
 	"github.com/opensourceways/xihe-training-center/controller"
 	"github.com/opensourceways/xihe-training-center/docs"
 	"github.com/opensourceways/xihe-training-center/domain"
-	"github.com/opensourceways/xihe-training-center/huaweicloud/training"
+	"github.com/opensourceways/xihe-training-center/huaweicloud/syncrepoimpl"
+	"github.com/opensourceways/xihe-training-center/huaweicloud/trainingimpl"
+	"github.com/opensourceways/xihe-training-center/infrastructure/mysql"
+	"github.com/opensourceways/xihe-training-center/infrastructure/platformimpl"
+	"github.com/opensourceways/xihe-training-center/infrastructure/synclockimpl"
 	"github.com/opensourceways/xihe-training-center/server"
 )
 
@@ -51,16 +55,43 @@ func main() {
 	}
 
 	// domain
-	domain.Init(cfg.Training)
+	domain.Init(&cfg.Domain)
 
 	// controller
 	controller.Init(log)
 
+	// sync repo
+	sync, err := syncrepoimpl.NewSyncRepo(&cfg.Sync)
+	if err != nil {
+		logrus.Fatalf("init sync repo failed, err:%s", err.Error())
+	}
+
+	// gitlab
+	p, err := platformimpl.NewPlatform(&cfg.Gitlab)
+	if err != nil {
+		logrus.Fatalf("init gitlab failed, err:%s", err.Error())
+	}
+
+	// sync lock
+	if err := mysql.Init(&cfg.Mysql); err != nil {
+		logrus.Fatalf("init gitlab failed, err:%s", err.Error())
+	}
+
+	lock := synclockimpl.NewRepoSyncLock(mysql.NewSyncLockMapper())
+
 	// run
-	ts, err := training.NewTraining(&cfg.Cloud)
+	ts, err := trainingimpl.NewTraining(&cfg.Training)
 	if err != nil {
 		logrus.Fatalf("new training center, err:%s", err.Error())
 	}
 
-	server.StartWebServer(o.service.Port, o.service.GracePeriod, docs.SwaggerInfo, ts)
+	server.StartWebServer(docs.SwaggerInfo, &server.Service{
+		Port:     o.service.Port,
+		Timeout:  o.service.GracePeriod,
+		Sync:     sync,
+		Lock:     lock,
+		Log:      log,
+		Platform: p,
+		Training: ts,
+	})
 }

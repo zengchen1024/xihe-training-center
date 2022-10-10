@@ -1,25 +1,35 @@
 package domain
 
+import (
+	"path/filepath"
+)
+
 type UserTraining struct {
 	User Account
 
 	Training
 }
 
+func (t *UserTraining) ToPath() string {
+	return filepath.Join(
+		t.User.Account(),
+		ResourceTypeProject.ResourceType(), t.ProjectRepoId,
+	)
+}
+
 type Training struct {
-	ProjectId string
+	ProjectName   ProjectName
+	ProjectRepoId string
 
 	Name TrainingName
 	Desc TrainingDesc
 
 	CodeDir  Directory
 	BootFile FilePath
-	LogDir   Directory
 
 	Hypeparameters []KeyValue
 	Env            []KeyValue
-	Inputs         []KeyValue
-	Outputs        []KeyValue
+	Inputs         []Input
 
 	Compute Compute
 }
@@ -35,7 +45,34 @@ type KeyValue struct {
 	Value CustomizedValue
 }
 
+type Input struct {
+	Key   CustomizedKey
+	Value ResourceInput
+}
+
+type ResourceInput struct {
+	User   Account
+	Type   ResourceType
+	RepoId string
+	File   string
+}
+
+func (r *ResourceInput) ToPath() string {
+	s := filepath.Join(
+		r.User.Account(), r.Type.ResourceType(),
+		r.RepoId, r.File,
+	)
+
+	if r.File == "" {
+		// The input is the directory. Appending "/" to make sure
+		// the path is a directory for object storage service.
+		return s + "/"
+	}
+
+	return s
+}
+
 type TrainingDetail struct {
 	Status   TrainingStatus
-	Duration TrainingDuration
+	Duration int
 }

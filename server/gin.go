@@ -13,35 +13,57 @@ import (
 	"github.com/swaggo/swag"
 
 	"github.com/opensourceways/xihe-training-center/controller"
+	"github.com/opensourceways/xihe-training-center/domain/platform"
+	"github.com/opensourceways/xihe-training-center/domain/synclock"
+	"github.com/opensourceways/xihe-training-center/domain/syncrepo"
 	"github.com/opensourceways/xihe-training-center/domain/training"
 )
 
-func StartWebServer(port int, timeout time.Duration, spec *swag.Spec, ts training.Training) {
+type Service struct {
+	Log *logrus.Entry
+
+	Port    int
+	Timeout time.Duration
+
+	Sync     syncrepo.SyncRepo
+	Lock     synclock.RepoSyncLock
+	Platform platform.Platform
+	Training training.Training
+}
+
+func StartWebServer(spec *swag.Spec, service *Service) {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(logRequest())
 
-	setRouter(r, spec, ts)
+	setRouter(r, spec, service)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", service.Port),
 		Handler: r,
 	}
 
 	defer interrupts.WaitForGracefulShutdown()
 
-	interrupts.ListenAndServe(srv, timeout)
+	interrupts.ListenAndServe(srv, service.Timeout)
 }
 
 //setRouter init router
-func setRouter(engine *gin.Engine, spec *swag.Spec, ts training.Training) {
+func setRouter(engine *gin.Engine, spec *swag.Spec, service *Service) {
 	spec.BasePath = "/api"
 	spec.Title = "xihe-training-center"
 	spec.Description = "APIs of xihe training center"
 
 	v1 := engine.Group(spec.BasePath)
 	{
-		controller.AddRouterForTrainingController(v1, ts)
+		controller.AddRouterForTrainingController(
+			v1,
+			service.Training,
+			service.Sync,
+			service.Lock,
+			service.Platform,
+			service.Log,
+		)
 	}
 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
