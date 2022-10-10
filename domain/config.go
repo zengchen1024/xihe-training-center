@@ -9,7 +9,7 @@ func Init(cfg *Config) {
 type Config struct {
 	MaxTrainingNameLength int `json:"max_training_name_length"`
 	MinTrainingNameLength int `json:"min_training_name_length"`
-	MaxDescLength         int `json:"max_desc_length"`
+	MaxTrainingDescLength int `json:"max_training_desc_length"`
 }
 
 func (r *Config) Setdefault() {
@@ -21,7 +21,7 @@ func (r *Config) Setdefault() {
 		r.MinTrainingNameLength = 5
 	}
 
-	if r.MaxDescLength == 0 {
-		r.MaxDescLength = 100
+	if r.MaxTrainingDescLength == 0 {
+		r.MaxTrainingDescLength = 100
 	}
 }

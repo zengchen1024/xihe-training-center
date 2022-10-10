@@ -79,7 +79,7 @@ func NewTrainingDesc(v string) (TrainingDesc, error) {
 		return nil, nil
 	}
 
-	max := config.MaxDescLength
+	max := config.MaxTrainingDescLength
 	if len(v) > max {
 		return nil, fmt.Errorf("the length of desc should be less than %d", max)
 	}
