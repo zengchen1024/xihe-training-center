@@ -20,10 +20,10 @@ func (c *Config) Validate() error {
 
 type SyncConfig struct {
 	WorkDir       string `json:"work_dir"        required:"true"`
-	OBSUtilPath   string `json:"obsutil_path"    required:"true"`
-	SyncFileShell string `json:"sync_file_shell" required:"true"`
 	RepoPath      string `json:"repo_path"       required:"true"`
 	CommitFile    string `json:"commit_file"     required:"true"`
+	OBSUtilPath   string `json:"obsutil_path"    required:"true"`
+	SyncFileShell string `json:"sync_file_shell" required:"true"`
 }
 
 func (c *SyncConfig) validate() error {
