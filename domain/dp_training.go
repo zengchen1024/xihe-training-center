@@ -3,9 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -16,36 +14,15 @@ var (
 	reDirectory = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
 	reFilePath  = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")
 
-	config = Config{}
+	TrainingStatusFailed      = trainingStatus("Failed")
+	TrainingStatusPending     = trainingStatus("Pending")
+	TrainingStatusRunning     = trainingStatus("Running")
+	TrainingStatusAbnormal    = trainingStatus("Abnormal")
+	TrainingStatusCreating    = trainingStatus("Creating")
+	TrainingStatusCompleted   = trainingStatus("Completed")
+	TrainingStatusTerminated  = trainingStatus("Terminated")
+	TrainingStatusTerminating = trainingStatus("Terminating")
 )
-
-func Init(cfg *TrainingConfig) {
-	config = Config{*cfg}
-}
-
-type Config struct {
-	Training TrainingConfig
-}
-
-type TrainingConfig struct {
-	MaxNameLength int `json:"max_name_length"`
-	MinNameLength int `json:"min_name_length"`
-	MaxDescLength int `json:"max_desc_length"`
-}
-
-func (r *TrainingConfig) Setdefault() {
-	if r.MaxNameLength == 0 {
-		r.MaxNameLength = 50
-	}
-
-	if r.MinNameLength == 0 {
-		r.MinNameLength = 5
-	}
-
-	if r.MaxDescLength == 0 {
-		r.MaxDescLength = 100
-	}
-}
 
 // Account
 type Account interface {
@@ -72,8 +49,8 @@ type TrainingName interface {
 }
 
 func NewTrainingName(v string) (TrainingName, error) {
-	max := config.Training.MaxNameLength
-	min := config.Training.MinNameLength
+	max := config.MaxTrainingNameLength
+	min := config.MinTrainingNameLength
 
 	if n := len(v); n > max || n < min {
 		return nil, fmt.Errorf("name's length should be between %d to %d", min, max)
@@ -102,7 +79,7 @@ func NewTrainingDesc(v string) (TrainingDesc, error) {
 		return nil, nil
 	}
 
-	max := config.Training.MaxDescLength
+	max := config.MaxDescLength
 	if len(v) > max {
 		return nil, fmt.Errorf("the length of desc should be less than %d", max)
 	}
@@ -122,6 +99,10 @@ type Directory interface {
 }
 
 func NewDirectory(v string) (Directory, error) {
+	if v == "" {
+		return nil, nil
+	}
+
 	if !reDirectory.MatchString(v) {
 		return nil, errors.New("invalid directory")
 	}
@@ -141,6 +122,10 @@ type FilePath interface {
 }
 
 func NewFilePath(v string) (FilePath, error) {
+	if v == "" {
+		return nil, nil
+	}
+
 	if !reFilePath.MatchString(v) {
 		return nil, errors.New("invalid filePath")
 	}
@@ -161,7 +146,7 @@ type ComputeType interface {
 
 func NewComputeType(v string) (ComputeType, error) {
 	if v == "" {
-		return nil, errors.New("invalid compute type")
+		return nil, nil
 	}
 
 	return computeType(v), nil
@@ -180,7 +165,7 @@ type ComputeVersion interface {
 
 func NewComputeVersion(v string) (ComputeVersion, error) {
 	if v == "" {
-		return nil, errors.New("invalid compute version")
+		return nil, nil
 	}
 
 	return computeVersion(v), nil
@@ -199,7 +184,7 @@ type ComputeFlavor interface {
 
 func NewComputeFlavor(v string) (ComputeFlavor, error) {
 	if v == "" {
-		return nil, errors.New("invalid compute flavor")
+		return nil, nil
 	}
 
 	return computeFlavor(v), nil
@@ -218,7 +203,7 @@ type CustomizedKey interface {
 
 func NewCustomizedKey(v string) (CustomizedKey, error) {
 	if v == "" {
-		return nil, errors.New("invalid key")
+		return nil, nil
 	}
 
 	return customizedKey(v), nil
@@ -236,6 +221,10 @@ type CustomizedValue interface {
 }
 
 func NewCustomizedValue(v string) (CustomizedValue, error) {
+	if v == "" {
+		return nil, nil
+	}
+
 	return customizedValue(v), nil
 }
 
@@ -252,7 +241,7 @@ type TrainingRegion interface {
 
 func NewTrainingRegion(v string) (TrainingRegion, error) {
 	if v == "" {
-		return nil, errors.New("invalid key")
+		return nil, nil
 	}
 
 	return trainingRegion(v), nil
@@ -269,110 +258,8 @@ type TrainingStatus interface {
 	TrainingStatus() string
 }
 
-func NewStatusCreating() TrainingStatus {
-	return trainingStatus("Creating")
-}
-
-func NewStatusPending() TrainingStatus {
-	return trainingStatus("Pending")
-}
-
-func NewStatusRunning() TrainingStatus {
-	return trainingStatus("Running")
-}
-
-func NewStatusFailed() TrainingStatus {
-	return trainingStatus("Failed")
-}
-
-func NewStatusCompleted() TrainingStatus {
-	return trainingStatus("Completed")
-}
-
-func NewStatusTerminating() TrainingStatus {
-	return trainingStatus("Terminating")
-}
-
-func NewStatusTerminated() TrainingStatus {
-	return trainingStatus("Terminated")
-}
-
-func NewStatusAbnormal() TrainingStatus {
-	return trainingStatus("Abnormal")
-}
-
 type trainingStatus string
 
 func (s trainingStatus) TrainingStatus() string {
 	return string(s)
-}
-
-// TrainingDuration
-type TrainingDuration interface {
-	TrainingDuration() int
-}
-
-func NewTrainingDuration(t int) (TrainingDuration, error) {
-	if t < 0 {
-		return nil, errors.New("invalid training time")
-	}
-
-	return trainingDuration(t), nil
-}
-
-type trainingDuration int
-
-func (t trainingDuration) TrainingDuration() int {
-	return int(t)
-}
-
-// InputValue
-// format: owner/[model,dataset]/repoid[/xx/xx]
-type InputValue interface {
-	InputValue() string
-	RepoId() string
-	OBSPath() string
-}
-
-func NewInputValue(s string) (InputValue, error) {
-	v := strings.Split(s, pathSpliter)
-	if len(v) < 3 {
-		return nil, errors.New("invalid input value")
-	}
-
-	if _, err := NewAccount(v[0]); err != nil {
-		return nil, errors.New("invalid owner of input value")
-	}
-
-	if t := v[1]; t != resourceModel && t != resourceDataset {
-		return nil, errors.New("invalid resource type of input value")
-	}
-
-	if _, err := strconv.Atoi(v[2]); err != nil {
-		return nil, errors.New("invalid repo id of input value")
-	}
-
-	return inputValue{
-		v:       s,
-		repoId:  v[2],
-		obsPath: filepath.Join(v[0], v[1], v[2]),
-	}, nil
-}
-
-type inputValue struct {
-	v       string
-	repoId  string
-	obsPath string
-}
-
-func (r inputValue) InputValue() string {
-	return r.v
-}
-
-func (r inputValue) RepoId() string {
-	return r.repoId
-}
-
-func (r inputValue) OBSPath() string {
-	return r.obsPath
 }

@@ -16,14 +16,14 @@ import (
 )
 
 var statusMap = map[string]domain.TrainingStatus{
-	"creating":    domain.NewStatusCreating(),
-	"pending":     domain.NewStatusPending(),
-	"running":     domain.NewStatusRunning(),
-	"failed":      domain.NewStatusFailed(),
-	"completed":   domain.NewStatusCompleted(),
-	"terminating": domain.NewStatusTerminating(),
-	"terminated":  domain.NewStatusTerminated(),
-	"abnormal":    domain.NewStatusAbnormal(),
+	"failed":      domain.TrainingStatusFailed,
+	"pending":     domain.TrainingStatusPending,
+	"running":     domain.TrainingStatusRunning,
+	"creating":    domain.TrainingStatusCreating,
+	"abnormal":    domain.TrainingStatusAbnormal,
+	"completed":   domain.TrainingStatusCompleted,
+	"terminated":  domain.TrainingStatusTerminated,
+	"terminating": domain.TrainingStatusTerminating,
 }
 
 func NewTraining(cfg *Config) (dt.Training, error) {
@@ -64,16 +64,51 @@ type trainingImpl struct {
 	config TrainingConfig
 }
 
+func (impl trainingImpl) genJobParameter(t *domain.UserTraining, opt *modelarts.JobCreateOption) {
+	if n := len(t.Hypeparameters); n > 0 {
+		p := make([]modelarts.ParameterOption, n)
+		for i, v := range t.Hypeparameters {
+			s := ""
+			if v.Value != nil {
+				s = v.Value.CustomizedValue()
+			}
+
+			p[i] = modelarts.ParameterOption{
+				Name:  v.Key.CustomizedKey(),
+				Value: s,
+			}
+		}
+
+		opt.Algorithm.Parameters = p
+	}
+
+	if n := len(t.Env); n > 0 {
+		m := make(map[string]string)
+		for _, v := range t.Env {
+			s := ""
+			if v.Value != nil {
+				s = v.Value.CustomizedValue()
+			}
+
+			m[v.Key.CustomizedKey()] = s
+		}
+
+		opt.Algorithm.Environments = m
+	}
+}
+
 func (impl trainingImpl) Create(t *domain.UserTraining) (info dt.TrainingInfo, err error) {
 	desc := ""
 	if t.Desc != nil {
 		desc = t.Desc.TrainingDesc()
 	}
 
-	obs := impl.obsFilePath(t.ToPath())
+	cfg := &impl.config
+	obs := filepath.Join(impl.obsRepoPath, t.ToPath())
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-	outputDir := filepath.Join(obs, impl.config.TrainOutputDir, timestamp) + "/"
-	logDir := filepath.Join(obs, impl.config.TrainLogDir, timestamp) + "/"
+
+	info.LogDir = filepath.Join(obs, cfg.TrainLogDir, timestamp) + "/"
+	info.OutputDir = filepath.Join(obs, cfg.TrainOutputDir, timestamp) + "/"
 
 	opt := modelarts.JobCreateOption{
 		Kind: "job",
@@ -90,10 +125,10 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info dt.TrainingInfo, e
 			},
 			Outputs: []modelarts.InputOutputOption{
 				{
-					Name: impl.config.TrainOutputKey,
+					Name: cfg.TrainOutputKey,
 					Remote: modelarts.RemoteOption{
 						OBS: modelarts.OBSOption{
-							OBSURL: outputDir,
+							OBSURL: info.OutputDir,
 						},
 					},
 				},
@@ -105,7 +140,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info dt.TrainingInfo, e
 				NodeCount: 1,
 			},
 			LogExportPath: modelarts.LogExportPathOption{
-				OBSURL: logDir,
+				OBSURL: info.LogDir,
 			},
 		},
 	}
@@ -114,32 +149,9 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info dt.TrainingInfo, e
 		opt.Algorithm.Inputs = impl.genInputOption(t.Inputs)
 	}
 
-	if n := len(t.Hypeparameters); n > 0 {
-		p := make([]modelarts.ParameterOption, n)
-		for i, v := range t.Hypeparameters {
-			p[i] = modelarts.ParameterOption{
-				Name:  v.Key.CustomizedKey(),
-				Value: v.Value.CustomizedValue(),
-			}
-		}
+	impl.genJobParameter(t, &opt)
 
-		opt.Algorithm.Parameters = p
-	}
-
-	if n := len(t.Env); n > 0 {
-		m := make(map[string]string)
-		for _, v := range t.Env {
-			m[v.Key.CustomizedKey()] = v.Value.CustomizedValue()
-		}
-
-		opt.Algorithm.Environments = m
-	}
-
-	info.Id, err = modelarts.CreateJob(impl.cli, opt)
-	if err == nil {
-		info.OutputDir = outputDir
-		info.LogDir = logDir
-	}
+	info.JobId, err = modelarts.CreateJob(impl.cli, opt)
 
 	return
 }
@@ -152,17 +164,13 @@ func (impl trainingImpl) genInputOption(kv []domain.Input) []modelarts.InputOutp
 			Name: v.Key.CustomizedKey(),
 			Remote: modelarts.RemoteOption{
 				OBS: modelarts.OBSOption{
-					OBSURL: impl.obsFilePath(v.Value.ToPath()),
+					OBSURL: impl.obsRepoPath + "/" + v.Value.ToPath(),
 				},
 			},
 		}
 	}
 
 	return r
-}
-
-func (impl trainingImpl) obsFilePath(p string) string {
-	return filepath.Join(impl.obsRepoPath, p)
 }
 
 func (impl trainingImpl) Delete(jobId string) error {
@@ -178,10 +186,10 @@ func (impl trainingImpl) Get(jobId string) (r domain.TrainingDetail, err error) 
 	if status, ok := statusMap[strings.ToLower(v.Status.Phase)]; ok {
 		r.Status = status
 	} else {
-		r.Status = domain.NewStatusAbnormal()
+		r.Status = domain.TrainingStatusAbnormal
 	}
 
-	r.Duration, err = domain.NewTrainingDuration(v.Status.Duration)
+	r.Duration = v.Status.Duration
 
 	return
 }

@@ -5,7 +5,7 @@ import (
 )
 
 type TrainingInfo struct {
-	Id        string
+	JobId     string
 	LogDir    string
 	OutputDir string
 }

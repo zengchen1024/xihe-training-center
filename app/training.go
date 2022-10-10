@@ -37,7 +37,7 @@ func (cmd *TrainingCreateCmd) Validate() error {
 
 	f := func(kv []domain.KeyValue) error {
 		for i := range kv {
-			if kv[i].Key == nil || kv[i].Value == nil {
+			if kv[i].Key == nil {
 				return err
 			}
 		}
@@ -72,7 +72,7 @@ func (cmd *TrainingCreateCmd) checkInput(i *domain.ResourceInput) error {
 }
 
 type TrainingInfoDTO struct {
-	Id        string `json:"status"`
+	JobId     string `json:"job_id"`
 	LogDir    string `json:"log_dir"`
 	OutputDir string `json:"output_dir"`
 }
@@ -122,7 +122,7 @@ func (s trainingService) Create(cmd *TrainingCreateCmd) (dto TrainingInfoDTO, er
 
 	v, err := s.ts.Create(&cmd.UserTraining)
 	if err == nil {
-		dto.Id = v.Id
+		dto.JobId = v.JobId
 		dto.LogDir = v.LogDir
 		dto.OutputDir = v.OutputDir
 	}
@@ -145,7 +145,7 @@ func (s trainingService) Get(jobId string) (dto TrainingDTO, err error) {
 	}
 
 	dto.Status = v.Status.TrainingStatus()
-	dto.Duration = v.Duration.TrainingDuration()
+	dto.Duration = v.Duration
 
 	return
 }

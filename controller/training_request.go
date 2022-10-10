@@ -11,13 +11,10 @@ type TrainingLogResp struct {
 	LogURL string `json:"log_url"`
 }
 
-type TrainingCreateResp struct {
-	JobId string `json:"job_id"`
-}
-
 type TrainingCreateRequest struct {
-	User      string `json:"user"`
-	ProjectId string `json:"project_id"`
+	User        string `json:"user"`
+	ProjectId   string `json:"project_id"`
+	ProjectName string `json:"project_name"`
 
 	Name string `json:"name"`
 	Desc string `json:"desc"`
@@ -39,6 +36,12 @@ type Compute struct {
 }
 
 func (c *Compute) toCompute() (r domain.Compute, err error) {
+	if c.Type == "" || c.Version == "" || c.Flavor == "" {
+		err = errors.New("invalid compute info")
+
+		return
+	}
+
 	if r.Type, err = domain.NewComputeType(c.Type); err != nil {
 		return
 	}
@@ -60,6 +63,12 @@ type KeyValue struct {
 }
 
 func (kv *KeyValue) toKeyValue() (r domain.KeyValue, err error) {
+	if kv.Key == "" {
+		err = errors.New("invalid key value")
+
+		return
+	}
+
 	if r.Key, err = domain.NewCustomizedKey(kv.Key); err != nil {
 		return
 	}
@@ -75,6 +84,12 @@ type Input struct {
 }
 
 func (kv *Input) toInput() (r domain.Input, err error) {
+	if kv.Key == "" {
+		err = errors.New("invalid input")
+
+		return
+	}
+
 	if r.Key, err = domain.NewCustomizedKey(kv.Key); err != nil {
 		return
 	}
@@ -92,6 +107,12 @@ type ResourceInput struct {
 }
 
 func (r *ResourceInput) toInput() (i domain.ResourceInput, err error) {
+	if r.Owner == "" || r.Type == "" || r.Id == "" {
+		err = errors.New("invalid resource input")
+
+		return
+	}
+
 	if i.User, err = domain.NewAccount(r.Owner); err != nil {
 		return
 	}
@@ -114,6 +135,10 @@ func (r *ResourceInput) toInput() (i domain.ResourceInput, err error) {
 
 func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error) {
 	if cmd.User, err = domain.NewAccount(req.User); err != nil {
+		return
+	}
+
+	if cmd.ProjectName, err = domain.NewProjectName(req.ProjectName); err != nil {
 		return
 	}
 

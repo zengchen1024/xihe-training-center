@@ -1,6 +1,8 @@
 package domain
 
-import "path/filepath"
+import (
+	"path/filepath"
+)
 
 type UserTraining struct {
 	User Account
@@ -70,5 +72,5 @@ func (r *ResourceInput) ToPath() string {
 
 type TrainingDetail struct {
 	Status   TrainingStatus
-	Duration TrainingDuration
+	Duration int
 }

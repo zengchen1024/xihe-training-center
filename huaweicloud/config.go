@@ -19,11 +19,11 @@ type configValidate interface {
 }
 
 type configuration struct {
-	Sync     syncrepoimpl.Config   `json:"sync"     required:"true"`
-	Mysql    mysql.Config          `json:"mysql"    required:"true"`
-	Gitlab   platformimpl.Config   `json:"gitlab"   required:"true"`
-	Domain   domain.TrainingConfig `json:"training" required:"true"`
-	Training trainingimpl.Config   `json:"cloud"    required:"true"`
+	Sync     syncrepoimpl.Config `json:"sync"     required:"true"`
+	Mysql    mysql.Config        `json:"mysql"    required:"true"`
+	Gitlab   platformimpl.Config `json:"gitlab"   required:"true"`
+	Domain   domain.Config       `json:"training" required:"true"`
+	Training trainingimpl.Config `json:"cloud"    required:"true"`
 }
 
 func (cfg *configuration) configItems() []interface{} {
