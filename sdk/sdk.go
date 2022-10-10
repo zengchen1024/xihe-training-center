@@ -34,23 +34,25 @@ func (t TrainingCenter) jobURL(jobId string) string {
 	return fmt.Sprintf("%s/%s", t.endpoint, jobId)
 }
 
-func (t TrainingCenter) CreateTraining(opt *TrainingCreateOption) (string, error) {
+func (t TrainingCenter) CreateTraining(opt *TrainingCreateOption) (
+	dto app.TrainingInfoDTO, err error,
+) {
 	payload, err := utils.JsonMarshal(&opt)
 	if err != nil {
-		return "", err
+		return
 	}
 
 	req, err := http.NewRequest(http.MethodPost, t.endpoint, bytes.NewBuffer(payload))
 	if err != nil {
-		return "", err
+		return
 	}
 
-	v := new(controller.TrainingCreateResp)
-	if err := t.forwardTo(req, v); err != nil {
-		return "", err
+	v := new(app.TrainingInfoDTO)
+	if err = t.forwardTo(req, v); err != nil {
+		return
 	}
 
-	return v.JobId, nil
+	return *v, nil
 }
 
 func (t TrainingCenter) DeleteTraining(jobId string) error {

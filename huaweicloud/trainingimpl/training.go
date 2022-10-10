@@ -52,21 +52,21 @@ func NewTraining(cfg *Config) (dt.Training, error) {
 
 	return trainingImpl{
 		cli:         cli,
-		obsRepoPath: filepath.Join(cfg.OBSBucket, cfg.OBSRepoPath),
 		config:      cfg.TrainingConfig,
+		obsRepoPath: filepath.Join(cfg.OBSBucket, cfg.OBSRepoPath),
 	}, nil
 }
 
 type trainingImpl struct {
 	cli         *golangsdk.ServiceClient
+	config      TrainingConfig
 	obsRepoPath string
-
-	config TrainingConfig
 }
 
 func (impl trainingImpl) genJobParameter(t *domain.UserTraining, opt *modelarts.JobCreateOption) {
 	if n := len(t.Hypeparameters); n > 0 {
 		p := make([]modelarts.ParameterOption, n)
+
 		for i, v := range t.Hypeparameters {
 			s := ""
 			if v.Value != nil {
@@ -84,6 +84,7 @@ func (impl trainingImpl) genJobParameter(t *domain.UserTraining, opt *modelarts.
 
 	if n := len(t.Env); n > 0 {
 		m := make(map[string]string)
+
 		for _, v := range t.Env {
 			s := ""
 			if v.Value != nil {
@@ -164,6 +165,7 @@ func (impl trainingImpl) genInputOption(kv []domain.Input) []modelarts.InputOutp
 			Name: v.Key.CustomizedKey(),
 			Remote: modelarts.RemoteOption{
 				OBS: modelarts.OBSOption{
+					// v.Value maybe a directory.
 					OBSURL: impl.obsRepoPath + "/" + v.Value.ToPath(),
 				},
 			},

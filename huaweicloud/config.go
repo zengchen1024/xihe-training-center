@@ -28,11 +28,11 @@ type configuration struct {
 
 func (cfg *configuration) configItems() []interface{} {
 	return []interface{}{
-		&cfg.Training,
 		&cfg.Sync,
-		&cfg.Domain,
-		&cfg.Gitlab,
 		&cfg.Mysql,
+		&cfg.Gitlab,
+		&cfg.Domain,
+		&cfg.Training,
 	}
 }
 

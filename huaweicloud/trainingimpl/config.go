@@ -10,7 +10,6 @@ type Config struct {
 	// modelarts endpoint
 	Endpoint string `json:"endpoint" required:"true"`
 
-	OBSEndpoint string `json:"obs_endpoint" required:"true"`
 	OBSBucket   string `json:"obs_bucket" required:"true"`
 	OBSRepoPath string `json:"obs_repo_path" required:"true"`
 

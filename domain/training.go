@@ -13,13 +13,13 @@ type UserTraining struct {
 func (t *UserTraining) ToPath() string {
 	return filepath.Join(
 		t.User.Account(),
-		ResourceTypeProject.ResourceType(), t.ProjectId,
+		ResourceTypeProject.ResourceType(), t.ProjectRepoId,
 	)
 }
 
 type Training struct {
-	ProjectId   string
-	ProjectName ProjectName
+	ProjectName   ProjectName
+	ProjectRepoId string
 
 	Name TrainingName
 	Desc TrainingDesc

@@ -20,7 +20,7 @@ func (cmd *TrainingCreateCmd) Validate() error {
 	err := errors.New("invalid cmd of creating training")
 
 	b := cmd.User != nil &&
-		cmd.ProjectId != "" &&
+		cmd.ProjectRepoId != "" &&
 		cmd.ProjectName != nil &&
 		cmd.Name != nil &&
 		cmd.CodeDir != nil &&
@@ -109,7 +109,7 @@ type trainingService struct {
 }
 
 func (s trainingService) Create(cmd *TrainingCreateCmd) (dto TrainingInfoDTO, err error) {
-	err = s.ss.syncProject(cmd.User, cmd.ProjectName, cmd.ProjectId)
+	err = s.ss.syncProject(cmd.User, cmd.ProjectName, cmd.ProjectRepoId)
 	if err != nil {
 		return
 	}

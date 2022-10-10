@@ -12,9 +12,9 @@ type TrainingLogResp struct {
 }
 
 type TrainingCreateRequest struct {
-	User        string `json:"user"`
-	ProjectId   string `json:"project_id"`
-	ProjectName string `json:"project_name"`
+	User          string `json:"user"`
+	ProjectName   string `json:"project_name"`
+	ProjectRepoId string `json:"project_repo_id"`
 
 	Name string `json:"name"`
 	Desc string `json:"desc"`
@@ -100,14 +100,14 @@ func (kv *Input) toInput() (r domain.Input, err error) {
 }
 
 type ResourceInput struct {
-	Owner string `json:"owner"`
-	Type  string `json:"type"`
-	Id    string `json:"id"`
-	File  string `json:"File"`
+	Owner  string `json:"owner"`
+	Type   string `json:"type"`
+	RepoId string `json:"repo_id"`
+	File   string `json:"File"`
 }
 
 func (r *ResourceInput) toInput() (i domain.ResourceInput, err error) {
-	if r.Owner == "" || r.Type == "" || r.Id == "" {
+	if r.Owner == "" || r.Type == "" || r.RepoId == "" {
 		err = errors.New("invalid resource input")
 
 		return
@@ -127,7 +127,7 @@ func (r *ResourceInput) toInput() (i domain.ResourceInput, err error) {
 		return
 	}
 
-	i.RepoId = r.Id
+	i.RepoId = r.RepoId
 	i.File = r.File
 
 	return
@@ -142,7 +142,7 @@ func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 		return
 	}
 
-	cmd.ProjectId = req.ProjectId
+	cmd.ProjectRepoId = req.ProjectRepoId
 
 	if cmd.Name, err = domain.NewTrainingName(req.Name); err != nil {
 		return
