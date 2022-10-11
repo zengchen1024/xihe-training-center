@@ -140,7 +140,7 @@ func (ctl *TrainingController) Get(ctx *gin.Context) {
 // @Failure 500 system_error        system error
 // @Router /v1/training/{id}/log [get]
 func (ctl *TrainingController) GetLog(ctx *gin.Context) {
-	v, err := ctl.ts.GetLogURL(ctx.Param("id"))
+	v, err := ctl.ts.GetLogDownloadURL(ctx.Param("id"))
 	if err != nil {
 		ctl.sendRespWithInternalError(ctx, newResponseError(err))
 

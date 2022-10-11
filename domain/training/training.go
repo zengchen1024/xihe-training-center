@@ -4,16 +4,16 @@ import (
 	"github.com/opensourceways/xihe-training-center/domain"
 )
 
-type TrainingInfo struct {
+type JobInfo struct {
 	JobId     string
 	LogDir    string
 	OutputDir string
 }
 
 type Training interface {
-	Create(*domain.UserTraining) (TrainingInfo, error)
+	Create(*domain.UserTraining) (JobInfo, error)
 	Delete(string) error
-	Get(string) (domain.TrainingDetail, error)
+	Get(string) (domain.JobDetail, error)
 	Terminate(string) error
-	GetLogURL(string) (string, error)
+	GetLogDownloadURL(string) (string, error)
 }

@@ -122,7 +122,7 @@ func GetJob(client *golangsdk.ServiceClient, jobId string) (j Job, err error) {
 	return j, err
 }
 
-func GetLogURL(client *golangsdk.ServiceClient, jobId string) (string, error) {
+func GetLogDownloadURL(client *golangsdk.ServiceClient, jobId string) (string, error) {
 	r := golangsdk.Result{}
 	_, r.Err = client.Get(
 		logURL(client, jobId), &r.Body,

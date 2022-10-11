@@ -13,10 +13,14 @@ import (
 )
 
 type TrainingCreateOption = controller.TrainingCreateRequest
-type TrainingDetail = app.TrainingDTO
+type ResourceInput = controller.ResourceInput
 type TrainingLog = controller.TrainingLogResp
 type KeyValue = controller.KeyValue
 type Compute = controller.Compute
+type Input = controller.Input
+
+type JobDetail = app.JobDetailDTO
+type JobInfo = app.JobInfoDTO
 
 func NewTrainingCenter(endpoint string) TrainingCenter {
 	return TrainingCenter{
@@ -35,7 +39,7 @@ func (t TrainingCenter) jobURL(jobId string) string {
 }
 
 func (t TrainingCenter) CreateTraining(opt *TrainingCreateOption) (
-	dto app.TrainingInfoDTO, err error,
+	dto JobInfo, err error,
 ) {
 	payload, err := utils.JsonMarshal(&opt)
 	if err != nil {
@@ -47,7 +51,7 @@ func (t TrainingCenter) CreateTraining(opt *TrainingCreateOption) (
 		return
 	}
 
-	v := new(app.TrainingInfoDTO)
+	v := new(app.JobInfoDTO)
 	if err = t.forwardTo(req, v); err != nil {
 		return
 	}
@@ -73,7 +77,7 @@ func (t TrainingCenter) TerminateTraining(jobId string) error {
 	return t.forwardTo(req, nil)
 }
 
-func (t TrainingCenter) GetTraining(jobId string) (r TrainingDetail, err error) {
+func (t TrainingCenter) GetTraining(jobId string) (r JobDetail, err error) {
 	req, err := http.NewRequest(http.MethodGet, t.jobURL(jobId), nil)
 	if err != nil {
 		return
