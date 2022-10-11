@@ -71,23 +71,23 @@ func (cmd *TrainingCreateCmd) checkInput(i *domain.ResourceInput) error {
 	return nil
 }
 
-type TrainingInfoDTO struct {
+type JobInfoDTO struct {
 	JobId     string `json:"job_id"`
 	LogDir    string `json:"log_dir"`
 	OutputDir string `json:"output_dir"`
 }
 
-type TrainingDTO struct {
+type JobDetailDTO struct {
 	Status   string `json:"status"`
 	Duration int    `json:"duration"`
 }
 
 type TrainingService interface {
-	Create(cmd *TrainingCreateCmd) (TrainingInfoDTO, error)
+	Create(cmd *TrainingCreateCmd) (JobInfoDTO, error)
 	Delete(jobId string) error
 	Terminate(jobId string) error
-	Get(jobId string) (dto TrainingDTO, err error)
-	GetLogURL(jobId string) (string, error)
+	Get(jobId string) (dto JobDetailDTO, err error)
+	GetLogDownloadURL(jobId string) (string, error)
 }
 
 func NewTrainingService(
@@ -108,7 +108,7 @@ type trainingService struct {
 	ss *syncService
 }
 
-func (s trainingService) Create(cmd *TrainingCreateCmd) (dto TrainingInfoDTO, err error) {
+func (s trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err error) {
 	err = s.ss.syncProject(cmd.User, cmd.ProjectName, cmd.ProjectRepoId)
 	if err != nil {
 		return
@@ -138,7 +138,7 @@ func (s trainingService) Terminate(jobId string) error {
 	return s.ts.Terminate(jobId)
 }
 
-func (s trainingService) Get(jobId string) (dto TrainingDTO, err error) {
+func (s trainingService) Get(jobId string) (dto JobDetailDTO, err error) {
 	v, err := s.ts.Get(jobId)
 	if err != nil {
 		return
@@ -150,6 +150,6 @@ func (s trainingService) Get(jobId string) (dto TrainingDTO, err error) {
 	return
 }
 
-func (s trainingService) GetLogURL(jobId string) (string, error) {
-	return s.ts.GetLogURL(jobId)
+func (s trainingService) GetLogDownloadURL(jobId string) (string, error) {
+	return s.ts.GetLogDownloadURL(jobId)
 }

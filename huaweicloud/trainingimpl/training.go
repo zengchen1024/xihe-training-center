@@ -10,7 +10,7 @@ import (
 	"github.com/chnsz/golangsdk"
 
 	"github.com/opensourceways/xihe-training-center/domain"
-	dt "github.com/opensourceways/xihe-training-center/domain/training"
+	"github.com/opensourceways/xihe-training-center/domain/training"
 	"github.com/opensourceways/xihe-training-center/huaweicloud/client"
 	"github.com/opensourceways/xihe-training-center/huaweicloud/modelarts"
 )
@@ -26,7 +26,7 @@ var statusMap = map[string]domain.TrainingStatus{
 	"terminating": domain.TrainingStatusTerminating,
 }
 
-func NewTraining(cfg *Config) (dt.Training, error) {
+func NewTraining(cfg *Config) (training.Training, error) {
 	s := "modelarts"
 	v := client.Config{
 		AccessKey:  cfg.AccessKey,
@@ -98,7 +98,7 @@ func (impl trainingImpl) genJobParameter(t *domain.UserTraining, opt *modelarts.
 	}
 }
 
-func (impl trainingImpl) Create(t *domain.UserTraining) (info dt.TrainingInfo, err error) {
+func (impl trainingImpl) Create(t *domain.UserTraining) (info training.JobInfo, err error) {
 	desc := ""
 	if t.Desc != nil {
 		desc = t.Desc.TrainingDesc()
@@ -179,7 +179,7 @@ func (impl trainingImpl) Delete(jobId string) error {
 	return modelarts.DeleteJob(impl.cli, jobId)
 }
 
-func (impl trainingImpl) Get(jobId string) (r domain.TrainingDetail, err error) {
+func (impl trainingImpl) Get(jobId string) (r domain.JobDetail, err error) {
 	v, err := modelarts.GetJob(impl.cli, jobId)
 	if err != nil {
 		return
@@ -200,6 +200,6 @@ func (impl trainingImpl) Terminate(jobId string) error {
 	return modelarts.TerminateJob(impl.cli, jobId)
 }
 
-func (impl trainingImpl) GetLogURL(jobId string) (string, error) {
-	return modelarts.GetLogURL(impl.cli, jobId)
+func (impl trainingImpl) GetLogDownloadURL(jobId string) (string, error) {
+	return modelarts.GetLogDownloadURL(impl.cli, jobId)
 }

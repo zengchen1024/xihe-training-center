@@ -72,7 +72,7 @@ func (r *ResourceInput) ToPath() string {
 	return s
 }
 
-type TrainingDetail struct {
+type JobDetail struct {
 	Status   TrainingStatus
 	Duration int
 }
