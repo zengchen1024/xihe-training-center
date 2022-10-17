@@ -12,5 +12,5 @@ type ProjectInfo struct {
 
 type SyncRepo interface {
 	SyncProject(*ProjectInfo) (lastCommit string, err error)
-	GetRepoSyncedCommit(*domain.ResourceInput) (c string, err error)
+	GetRepoSyncedCommit(*domain.ResourceRef) (c string, err error)
 }

@@ -55,17 +55,10 @@ func (cmd *TrainingCreateCmd) Validate() error {
 
 	for i := range cmd.Inputs {
 		v := &cmd.Inputs[i]
-		if v.Key == nil || cmd.checkInput(&v.Value) != nil {
-			return err
+
+		if v.Key == nil || v.User == nil || v.Type == nil || v.RepoId == "" {
+			return errors.New("invalide input")
 		}
-	}
-
-	return nil
-}
-
-func (cmd *TrainingCreateCmd) checkInput(i *domain.ResourceInput) error {
-	if i.User == nil || i.Type == nil || i.RepoId == "" {
-		return errors.New("invalide input")
 	}
 
 	return nil
@@ -115,7 +108,7 @@ func (s trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err err
 	}
 
 	for i := range cmd.Inputs {
-		if err = s.ss.checkResourceReady(&cmd.Inputs[i].Value); err != nil {
+		if err = s.ss.checkResourceReady(&cmd.Inputs[i].ResourceRef); err != nil {
 			return
 		}
 	}

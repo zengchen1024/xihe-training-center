@@ -41,7 +41,7 @@ type syncRepoImpl struct {
 	config    SyncConfig
 }
 
-func (s *syncRepoImpl) GetRepoSyncedCommit(i *domain.ResourceInput) (
+func (s *syncRepoImpl) GetRepoSyncedCommit(i *domain.ResourceRef) (
 	c string, err error,
 ) {
 	p := filepath.Join(s.config.RepoPath, i.ToPath(), s.config.CommitFile)
