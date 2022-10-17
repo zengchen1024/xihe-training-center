@@ -32,7 +32,7 @@ type syncService struct {
 	p    platform.Platform
 }
 
-func (s *syncService) checkResourceReady(i *domain.ResourceInput) error {
+func (s *syncService) checkResourceReady(i *domain.ResourceRef) error {
 	c, err := s.h.GetRepoSyncedCommit(i)
 	if err != nil {
 		return err

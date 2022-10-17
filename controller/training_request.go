@@ -79,8 +79,8 @@ func (kv *KeyValue) toKeyValue() (r domain.KeyValue, err error) {
 }
 
 type Input struct {
-	Key   string        `json:"key"`
-	Value ResourceInput `json:"value"`
+	Key   string      `json:"key"`
+	Value ResourceRef `json:"value"`
 }
 
 func (kv *Input) toInput() (r domain.Input, err error) {
@@ -94,19 +94,19 @@ func (kv *Input) toInput() (r domain.Input, err error) {
 		return
 	}
 
-	r.Value, err = kv.Value.toInput()
+	err = kv.Value.toRef(&r.ResourceRef)
 
 	return
 }
 
-type ResourceInput struct {
+type ResourceRef struct {
 	Owner  string `json:"owner"`
 	Type   string `json:"type"`
 	RepoId string `json:"repo_id"`
 	File   string `json:"File"`
 }
 
-func (r *ResourceInput) toInput() (i domain.ResourceInput, err error) {
+func (r *ResourceRef) toRef(i *domain.ResourceRef) (err error) {
 	if r.Owner == "" || r.Type == "" || r.RepoId == "" {
 		err = errors.New("invalid resource input")
 

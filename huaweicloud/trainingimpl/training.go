@@ -166,7 +166,7 @@ func (impl trainingImpl) genInputOption(kv []domain.Input) []modelarts.InputOutp
 			Remote: modelarts.RemoteOption{
 				OBS: modelarts.OBSOption{
 					// v.Value maybe a directory.
-					OBSURL: impl.obsRepoPath + "/" + v.Value.ToPath(),
+					OBSURL: impl.obsRepoPath + "/" + v.ToPath(),
 				},
 			},
 		}

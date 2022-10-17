@@ -25,7 +25,7 @@ type JobInfo = app.JobInfoDTO
 func NewTrainingCenter(endpoint string) TrainingCenter {
 	return TrainingCenter{
 		endpoint: strings.TrimSuffix(endpoint, "/"),
-		cli:      utils.HttpClient{MaxRetries: 3},
+		cli:      utils.NewHttpClient(3),
 	}
 }
 
@@ -88,7 +88,7 @@ func (t TrainingCenter) GetTraining(jobId string) (r JobDetail, err error) {
 	return
 }
 
-func (t TrainingCenter) GetLog(jobId string) (r TrainingLog, err error) {
+func (t TrainingCenter) GetLogDownloadURL(jobId string) (r TrainingLog, err error) {
 	req, err := http.NewRequest(http.MethodGet, t.jobURL(jobId)+"/log", nil)
 	if err != nil {
 		return
@@ -99,7 +99,7 @@ func (t TrainingCenter) GetLog(jobId string) (r TrainingLog, err error) {
 	return
 }
 
-func (t TrainingCenter) forwardTo(req *http.Request, jsonResp interface{}) error {
+func (t TrainingCenter) forwardTo(req *http.Request, jsonResp interface{}) (err error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "xihe-training-center")
@@ -109,8 +109,10 @@ func (t TrainingCenter) forwardTo(req *http.Request, jsonResp interface{}) error
 			Data interface{} `json:"data"`
 		}{jsonResp}
 
-		return t.cli.ForwardTo(req, &v)
+		_, err = t.cli.ForwardTo(req, &v)
+	} else {
+		_, err = t.cli.ForwardTo(req, jsonResp)
 	}
 
-	return t.cli.ForwardTo(req, jsonResp)
+	return
 }

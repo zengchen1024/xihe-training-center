@@ -7,7 +7,7 @@ import (
 type UserTraining struct {
 	User Account
 
-	Training
+	TrainingConfig
 }
 
 func (t *UserTraining) ToPath() string {
@@ -17,7 +17,7 @@ func (t *UserTraining) ToPath() string {
 	)
 }
 
-type Training struct {
+type TrainingConfig struct {
 	ProjectName   ProjectName
 	ProjectRepoId string
 
@@ -46,18 +46,18 @@ type KeyValue struct {
 }
 
 type Input struct {
-	Key   CustomizedKey
-	Value ResourceInput
+	Key CustomizedKey
+	ResourceRef
 }
 
-type ResourceInput struct {
+type ResourceRef struct {
 	User   Account
 	Type   ResourceType
 	RepoId string
 	File   string
 }
 
-func (r *ResourceInput) ToPath() string {
+func (r *ResourceRef) ToPath() string {
 	s := filepath.Join(
 		r.User.Account(), r.Type.ResourceType(),
 		r.RepoId, r.File,
