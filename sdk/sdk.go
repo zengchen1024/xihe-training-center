@@ -13,7 +13,7 @@ import (
 )
 
 type TrainingCreateOption = controller.TrainingCreateRequest
-type ResourceInput = controller.ResourceInput
+type ResourceRef = controller.ResourceRef
 type TrainingLog = controller.TrainingLogResp
 type KeyValue = controller.KeyValue
 type Compute = controller.Compute
