@@ -12,7 +12,7 @@ type Config struct {
 	MaxTrainingDescLength int `json:"max_training_desc_length"`
 }
 
-func (r *Config) Setdefault() {
+func (r *Config) SetDefault() {
 	if r.MaxTrainingNameLength == 0 {
 		r.MaxTrainingNameLength = 50
 	}
