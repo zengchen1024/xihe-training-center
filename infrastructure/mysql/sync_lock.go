@@ -18,7 +18,7 @@ type syncLock struct{}
 func (rs syncLock) Insert(do *synclockimpl.RepoSyncLockDO) (string, error) {
 	table := rs.toSyncLockTable(do)
 
-	r := cli.db.Model(table).Create(table)
+	r := cli.db.Model(&table).Create(&table)
 	if r.Error != nil {
 		return "", r.Error
 	}
