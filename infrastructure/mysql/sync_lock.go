@@ -32,7 +32,7 @@ func (rs syncLock) Insert(do *synclockimpl.RepoSyncLockDO) (string, error) {
 	return strconv.Itoa(table.Id), nil
 }
 
-func (rs syncLock) Get(owner, repoType, repoId string) (do synclockimpl.RepoSyncLockDO, err error) {
+func (rs syncLock) Get(owner, repoId string) (do synclockimpl.RepoSyncLockDO, err error) {
 	cond := &ProjectRepoSyncLock{
 		Owner:  owner,
 		RepoId: repoId,
@@ -62,7 +62,7 @@ func (rs syncLock) Update(do *synclockimpl.RepoSyncLockDO) error {
 
 	tx := cli.db.Model(cond).Where(cond).Updates(
 		map[string]interface{}{
-			fieldVersion:    gorm.Expr("? + ?", fieldVersion, 1),
+			fieldVersion:    gorm.Expr(fieldVersion+" + ?", 1),
 			fieldLastCommit: do.LastCommit,
 			fieldStatus:     do.Status,
 		},

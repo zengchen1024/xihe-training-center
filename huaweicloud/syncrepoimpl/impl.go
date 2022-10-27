@@ -28,6 +28,10 @@ func NewSyncRepo(cfg *Config) (syncrepo.SyncRepo, error) {
 		return nil, fmt.Errorf("obsutil config failed, err:%s", err.Error())
 	}
 
+	if err := os.Mkdir(cfg.WorkDir, 0755); err != nil {
+		return nil, err
+	}
+
 	return &syncRepoImpl{
 		obsClient: cli,
 		bucket:    cfg.Bucket,
@@ -99,7 +103,8 @@ func (s *syncRepoImpl) SyncProject(repo *syncrepo.ProjectInfo) (lastCommit strin
 	v, err, _ := libutils.RunCmd(
 		cfg.SyncFileShell, tempDir,
 		repo.RepoURL, repo.Name.ProjectName(),
-		repo.StartCommit, cfg.OBSUtilPath, obsRepoPath,
+		cfg.OBSUtilPath, s.bucket, obsRepoPath,
+		repo.StartCommit,
 	)
 	if err != nil {
 		return

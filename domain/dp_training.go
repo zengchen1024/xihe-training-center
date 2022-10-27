@@ -100,7 +100,7 @@ type Directory interface {
 
 func NewDirectory(v string) (Directory, error) {
 	if v == "" {
-		return nil, errors.New("empty directory")
+		return directory(""), nil
 	}
 
 	if !reDirectory.MatchString(v) {

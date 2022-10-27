@@ -57,7 +57,7 @@ func (s *syncService) checkResourceReady(i *domain.ResourceRef) error {
 func (s *syncService) syncProject(
 	owner domain.Account, repoName domain.ProjectName, repoId string,
 ) (syncErr error) {
-	c, err := s.lock.Find(owner, domain.ResourceTypeProject, repoId)
+	c, err := s.lock.Find(owner, repoId)
 	if err != nil {
 		if !synclock.IsRepoSyncLockNotExist(err) {
 			return err
@@ -65,7 +65,6 @@ func (s *syncService) syncProject(
 
 		c.Owner = owner
 		c.RepoId = repoId
-		c.RepoType = domain.ResourceTypeProject
 	}
 
 	if c.Status != nil && !c.Status.IsDone() {
