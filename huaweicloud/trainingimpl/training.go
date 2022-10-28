@@ -15,6 +15,8 @@ import (
 	"github.com/opensourceways/xihe-training-center/huaweicloud/modelarts"
 )
 
+const obsPrefix = "obs://"
+
 var statusMap = map[string]domain.TrainingStatus{
 	"failed":      domain.TrainingStatusFailed,
 	"pending":     domain.TrainingStatusPending,
@@ -118,8 +120,8 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info training.JobInfo, 
 			Desc: desc,
 		},
 		Algorithm: modelarts.AlgorithmOption{
-			CodeDir:  filepath.Join(obs, t.CodeDir.Directory()) + "/",
-			BootFile: filepath.Join(obs, t.CodeDir.Directory(), t.BootFile.FilePath()),
+			CodeDir:  obsPrefix + filepath.Join(obs, t.CodeDir.Directory()) + "/",
+			BootFile: obsPrefix + filepath.Join(obs, t.CodeDir.Directory(), t.BootFile.FilePath()),
 			Engine: modelarts.EngineOption{
 				EngineName:    t.Compute.Type.ComputeType(),
 				EngineVersion: t.Compute.Version.ComputeVersion(),
@@ -129,7 +131,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info training.JobInfo, 
 					Name: cfg.TrainOutputKey,
 					Remote: modelarts.RemoteOption{
 						OBS: modelarts.OBSOption{
-							OBSURL: info.OutputDir,
+							OBSURL: obsPrefix + info.OutputDir,
 						},
 					},
 				},
@@ -141,7 +143,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info training.JobInfo, 
 				NodeCount: 1,
 			},
 			LogExportPath: modelarts.LogExportPathOption{
-				OBSURL: info.LogDir,
+				OBSURL: obsPrefix + info.LogDir,
 			},
 		},
 	}
@@ -166,7 +168,7 @@ func (impl trainingImpl) genInputOption(kv []domain.Input) []modelarts.InputOutp
 			Remote: modelarts.RemoteOption{
 				OBS: modelarts.OBSOption{
 					// v.Value maybe a directory.
-					OBSURL: impl.obsRepoPath + "/" + v.ToPath(),
+					OBSURL: obsPrefix + impl.obsRepoPath + "/" + v.ToPath(),
 				},
 			},
 		}

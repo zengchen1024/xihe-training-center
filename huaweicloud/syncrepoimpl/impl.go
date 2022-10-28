@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/huaweicloud/huaweicloud-sdk-go-obs/obs"
 	libutils "github.com/opensourceways/community-robot-lib/utils"
@@ -117,7 +118,7 @@ func (s *syncRepoImpl) SyncProject(repo *syncrepo.ProjectInfo) (lastCommit strin
 		return
 	}
 
-	lastCommit = string(v)
+	lastCommit = strings.TrimSuffix(string(v), "\n")
 
 	return
 }
