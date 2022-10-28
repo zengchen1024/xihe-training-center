@@ -91,24 +91,35 @@ func NewTrainingService(
 	log *logrus.Entry,
 ) TrainingService {
 	return trainingService{
-		ts: ts,
-		ss: newSyncService(h, lock, p, log),
+		ts:  ts,
+		log: log,
+		ss:  newSyncService(h, lock, p, log),
 	}
 }
 
 type trainingService struct {
-	ts training.Training
-	ss *syncService
+	ss  *syncService
+	log *logrus.Entry
+	ts  training.Training
 }
 
 func (s trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err error) {
 	err = s.ss.syncProject(cmd.User, cmd.ProjectName, cmd.ProjectRepoId)
 	if err != nil {
+		s.log.Debug("sync project failed")
+
 		return
 	}
 
 	for i := range cmd.Inputs {
-		if err = s.ss.checkResourceReady(&cmd.Inputs[i].ResourceRef); err != nil {
+		dep := &cmd.Inputs[i].ResourceRef
+
+		if err = s.ss.checkResourceReady(dep); err != nil {
+			s.log.Debugf(
+				"check dependent resource:%s failed",
+				dep.ToPath(),
+			)
+
 			return
 		}
 	}
