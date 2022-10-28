@@ -100,13 +100,20 @@ func (s *syncRepoImpl) SyncProject(repo *syncrepo.ProjectInfo) (lastCommit strin
 		domain.ResourceTypeProject.ResourceType(), repo.RepoId,
 	)
 
-	v, err, _ := libutils.RunCmd(
+	params := []string{
 		cfg.SyncFileShell, tempDir,
 		repo.RepoURL, repo.Name.ProjectName(),
 		cfg.OBSUtilPath, s.bucket, obsRepoPath,
 		repo.StartCommit,
-	)
+	}
+
+	v, err, _ := libutils.RunCmd(params...)
 	if err != nil {
+		err = fmt.Errorf(
+			"run sync shell, err=%s, params=%v",
+			err.Error(), params,
+		)
+
 		return
 	}
 
