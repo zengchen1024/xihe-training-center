@@ -32,7 +32,7 @@ func newHelper(cfg *Config) (*helper, error) {
 		return nil, fmt.Errorf("obsutil config failed, err:%s", err.Error())
 	}
 
-	if err := os.Mkdir(suc.WorkDir, 0755); err != nil {
+	if err := os.Mkdir(suc.SyncWorkDir, 0755); err != nil {
 		return nil, err
 	}
 
@@ -95,7 +95,7 @@ func (s *helper) getObject(path string) ([]byte, error) {
 func (s *helper) SyncProject(repo *training.ProjectInfo) (lastCommit string, err error) {
 	cfg := &s.suc
 
-	tempDir, err := ioutil.TempDir(cfg.WorkDir, "sync")
+	tempDir, err := ioutil.TempDir(cfg.SyncWorkDir, "sync")
 	if err != nil {
 		return
 	}

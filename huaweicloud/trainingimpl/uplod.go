@@ -11,6 +11,10 @@ import (
 )
 
 func (s *helper) GetLogFilePath(logDir string) (p string, err error) {
+	if !strings.HasSuffix(logDir, "/") {
+		logDir += "/"
+	}
+
 	input := &obs.ListObjectsInput{}
 	input.Bucket = s.bucket
 	input.Prefix = logDir // "src0/"

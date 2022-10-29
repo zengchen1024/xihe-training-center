@@ -65,16 +65,19 @@ type ModelartsConfig struct {
 }
 
 type TrainingConfig struct {
-	TrainOutputKey string `json:"train_output_key"`
-	TrainOutputDir string `json:"train_output_dir"`
-	TrainLogDir    string `json:"train_log_dir"`
-	OBSRepoPath    string `json:"obs_repo_path" required:"true"`
+	LogDir    string `json:"log_dir"`
+	AimKey    string `json:"aim_key"`
+	AimDir    string `json:"aim_dir"`
+	OutputKey string `json:"output_key"`
+	OutputDir string `json:"output_dir"`
 }
 
 func (cfg *TrainingConfig) setDefault() {
-	cfg.TrainOutputKey = "output_url"
-	cfg.TrainOutputDir = "train-output"
-	cfg.TrainLogDir = "train-log"
+	cfg.LogDir = "train-log"
+	cfg.AimKey = "aim_repo"
+	cfg.AimDir = "tain-aim"
+	cfg.OutputKey = "output_path"
+	cfg.OutputDir = "train-output"
 }
 
 type OBSConfig struct {
@@ -85,10 +88,10 @@ type OBSConfig struct {
 }
 
 type SyncAndUploadConfig struct {
-	WorkDir       string `json:"work_dir"                 required:"true"`
 	RepoPath      string `json:"repo_path"                required:"true"`
 	CommitFile    string `json:"commit_file"              required:"true"`
 	OBSUtilPath   string `json:"obsutil_path"             required:"true"`
+	SyncWorkDir   string `json:"sync_work_dir"            required:"true"`
 	SyncFileShell string `json:"sync_file_shell"          required:"true"`
 
 	UploadWorkDir     string `json:"upload_work_dir"      required:"true"`
@@ -100,8 +103,8 @@ func (c *SyncAndUploadConfig) validate() error {
 		return errors.New("obsutil_path must be an absolute path")
 	}
 
-	if !filepath.IsAbs(c.WorkDir) {
-		return errors.New("work_dir must be an absolute path")
+	if !filepath.IsAbs(c.SyncWorkDir) {
+		return errors.New("sync_work_dir must be an absolute path")
 	}
 
 	if !filepath.IsAbs(c.SyncFileShell) {
@@ -112,8 +115,8 @@ func (c *SyncAndUploadConfig) validate() error {
 		return errors.New("repo_path can't start with /")
 	}
 
-	if !filepath.IsAbs(c.WorkDir) {
-		return errors.New("work_dir must be an absolute path")
+	if !filepath.IsAbs(c.UploadWorkDir) {
+		return errors.New("upload_work_dir must be an absolute path")
 	}
 
 	if !filepath.IsAbs(c.UploadFolderShell) {

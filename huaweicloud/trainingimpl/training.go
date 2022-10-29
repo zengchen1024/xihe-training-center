@@ -62,7 +62,7 @@ func NewTraining(cfg *Config) (training.Training, error) {
 		cli:         cli,
 		config:      cfg.Train,
 		helper:      h,
-		obsRepoPath: filepath.Join(cfg.OBS.Bucket, cfg.Train.OBSRepoPath),
+		obsRepoPath: filepath.Join(cfg.OBS.Bucket, cfg.SyncAndUpload.RepoPath),
 	}, nil
 }
 
@@ -119,8 +119,9 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 	obs := filepath.Join(impl.obsRepoPath, t.ToPath())
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 
-	info.LogDir = filepath.Join(obs, cfg.TrainLogDir, timestamp) + "/"
-	info.OutputDir = filepath.Join(obs, cfg.TrainOutputDir, timestamp) + "/"
+	info.LogDir = filepath.Join(obs, cfg.LogDir, timestamp) + "/"
+	info.AimDir = filepath.Join(obs, cfg.AimDir, timestamp) + "/"
+	info.OutputDir = filepath.Join(obs, cfg.OutputDir, timestamp) + "/"
 
 	opt := modelarts.JobCreateOption{
 		Kind: "job",
@@ -137,10 +138,18 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 			},
 			Outputs: []modelarts.InputOutputOption{
 				{
-					Name: cfg.TrainOutputKey,
+					Name: cfg.OutputKey,
 					Remote: modelarts.RemoteOption{
 						OBS: modelarts.OBSOption{
 							OBSURL: obsPrefix + info.OutputDir,
+						},
+					},
+				},
+				{
+					Name: cfg.AimKey,
+					Remote: modelarts.RemoteOption{
+						OBS: modelarts.OBSOption{
+							OBSURL: obsPrefix + info.AimDir,
 						},
 					},
 				},
