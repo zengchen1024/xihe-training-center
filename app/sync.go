@@ -6,16 +6,16 @@ import (
 	"github.com/opensourceways/xihe-training-center/domain"
 	"github.com/opensourceways/xihe-training-center/domain/platform"
 	"github.com/opensourceways/xihe-training-center/domain/synclock"
-	"github.com/opensourceways/xihe-training-center/domain/syncrepo"
+	"github.com/opensourceways/xihe-training-center/domain/training"
 	"github.com/opensourceways/xihe-training-center/utils"
 	"github.com/sirupsen/logrus"
 )
 
 func newSyncService(
-	h syncrepo.SyncRepo,
-	lock synclock.RepoSyncLock,
+	h training.Training,
 	p platform.Platform,
 	log *logrus.Entry,
+	lock synclock.RepoSyncLock,
 ) *syncService {
 	return &syncService{
 		h:    h,
@@ -27,7 +27,7 @@ func newSyncService(
 
 type syncService struct {
 	log  *logrus.Entry
-	h    syncrepo.SyncRepo
+	h    training.Training
 	lock synclock.RepoSyncLock
 	p    platform.Platform
 }
@@ -89,7 +89,7 @@ func (s *syncService) syncProject(
 
 	// do sync
 	repoURL := s.p.GetCloneURL(owner.Account(), repoName.ProjectName())
-	lastCommit, syncErr = s.h.SyncProject(&syncrepo.ProjectInfo{
+	lastCommit, syncErr = s.h.SyncProject(&training.ProjectInfo{
 		Name:        repoName,
 		Owner:       owner,
 		RepoId:      repoId,

@@ -13,6 +13,8 @@ type TrainingLogResp struct {
 
 type TrainingCreateRequest struct {
 	User          string `json:"user"`
+	ProjectId     string `json:"project_id"`
+	TrainingId    string `json:"training_id"`
 	ProjectName   string `json:"project_name"`
 	ProjectRepoId string `json:"project_repo_id"`
 
@@ -142,6 +144,8 @@ func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 		return
 	}
 
+	cmd.ProjectId = req.ProjectId
+	cmd.TrainingId = req.TrainingId
 	cmd.ProjectRepoId = req.ProjectRepoId
 
 	if cmd.Name, err = domain.NewTrainingName(req.Name); err != nil {

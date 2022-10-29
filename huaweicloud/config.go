@@ -4,10 +4,10 @@ import (
 	"github.com/opensourceways/community-robot-lib/utils"
 
 	"github.com/opensourceways/xihe-training-center/domain"
-	"github.com/opensourceways/xihe-training-center/huaweicloud/syncrepoimpl"
 	"github.com/opensourceways/xihe-training-center/huaweicloud/trainingimpl"
 	"github.com/opensourceways/xihe-training-center/infrastructure/mysql"
 	"github.com/opensourceways/xihe-training-center/infrastructure/platformimpl"
+	"github.com/opensourceways/xihe-training-center/infrastructure/watchimpl"
 )
 
 type configSetDefault interface {
@@ -19,20 +19,24 @@ type configValidate interface {
 }
 
 type configuration struct {
-	Sync     syncrepoimpl.Config `json:"sync"      required:"true"`
-	Mysql    mysql.Config        `json:"mysql"     required:"true"`
-	Gitlab   platformimpl.Config `json:"gitlab"    required:"true"`
-	Domain   domain.Config       `json:"domain"`
-	Training trainingimpl.Config `json:"training"  required:"true"`
+	// MaxTrainingNum specifies the max num of training
+	// which the training center can support
+	MaxTrainingNum int `json:"max_training_num"`
+
+	Train  trainingimpl.Config `json:"train"     required:"true"`
+	Watch  watchimpl.Config    `json:"watch"     required:"true"`
+	Mysql  mysql.Config        `json:"mysql"     required:"true"`
+	Gitlab platformimpl.Config `json:"gitlab"    required:"true"`
+	Domain domain.Config       `json:"domain"`
 }
 
 func (cfg *configuration) configItems() []interface{} {
 	return []interface{}{
-		&cfg.Sync,
+		&cfg.Watch,
 		&cfg.Mysql,
 		&cfg.Gitlab,
 		&cfg.Domain,
-		&cfg.Training,
+		&cfg.Train,
 	}
 }
 
@@ -61,6 +65,10 @@ func (cfg *configuration) setDefault() {
 		if v, ok := i.(configSetDefault); ok {
 			v.SetDefault()
 		}
+	}
+
+	if cfg.MaxTrainingNum <= 0 {
+		cfg.MaxTrainingNum = 100
 	}
 }
 

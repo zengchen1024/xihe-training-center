@@ -12,11 +12,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/swag"
 
+	"github.com/opensourceways/xihe-training-center/app"
 	"github.com/opensourceways/xihe-training-center/controller"
-	"github.com/opensourceways/xihe-training-center/domain/platform"
-	"github.com/opensourceways/xihe-training-center/domain/synclock"
-	"github.com/opensourceways/xihe-training-center/domain/syncrepo"
-	"github.com/opensourceways/xihe-training-center/domain/training"
 )
 
 type Service struct {
@@ -25,10 +22,7 @@ type Service struct {
 	Port    int
 	Timeout time.Duration
 
-	Sync     syncrepo.SyncRepo
-	Lock     synclock.RepoSyncLock
-	Platform platform.Platform
-	Training training.Training
+	Training app.TrainingService
 }
 
 func StartWebServer(spec *swag.Spec, service *Service) {
@@ -59,10 +53,6 @@ func setRouter(engine *gin.Engine, spec *swag.Spec, service *Service) {
 		controller.AddRouterForTrainingController(
 			v1,
 			service.Training,
-			service.Sync,
-			service.Lock,
-			service.Platform,
-			service.Log,
 		)
 	}
 

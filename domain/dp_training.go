@@ -14,14 +14,10 @@ var (
 	reDirectory = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
 	reFilePath  = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")
 
-	TrainingStatusFailed      = trainingStatus("Failed")
-	TrainingStatusPending     = trainingStatus("Pending")
-	TrainingStatusRunning     = trainingStatus("Running")
-	TrainingStatusAbnormal    = trainingStatus("Abnormal")
-	TrainingStatusCreating    = trainingStatus("Creating")
-	TrainingStatusCompleted   = trainingStatus("Completed")
-	TrainingStatusTerminated  = trainingStatus("Terminated")
-	TrainingStatusTerminating = trainingStatus("Terminating")
+	TrainingStatusFailed     = trainingStatus("Failed")
+	TrainingStatusRunning    = trainingStatus("Running")
+	TrainingStatusCompleted  = trainingStatus("Completed")
+	TrainingStatusTerminated = trainingStatus("Terminated")
 )
 
 // Account
@@ -237,10 +233,20 @@ func (r customizedValue) CustomizedValue() string {
 // TrainingStatus
 type TrainingStatus interface {
 	TrainingStatus() string
+	IsDone() bool
+	IsSuccess() bool
 }
 
 type trainingStatus string
 
 func (s trainingStatus) TrainingStatus() string {
 	return string(s)
+}
+
+func (s trainingStatus) IsDone() bool {
+	return string(s) != TrainingStatusRunning.TrainingStatus()
+}
+
+func (s trainingStatus) IsSuccess() bool {
+	return string(s) == TrainingStatusCompleted.TrainingStatus()
 }

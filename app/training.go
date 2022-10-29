@@ -2,17 +2,21 @@ package app
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/xihe-training-center/domain"
 	"github.com/opensourceways/xihe-training-center/domain/platform"
 	"github.com/opensourceways/xihe-training-center/domain/synclock"
-	"github.com/opensourceways/xihe-training-center/domain/syncrepo"
 	"github.com/opensourceways/xihe-training-center/domain/training"
+	"github.com/opensourceways/xihe-training-center/domain/watch"
 )
 
 type TrainingCreateCmd struct {
+	ProjectId  string
+	TrainingId string
+
 	domain.UserTraining
 }
 
@@ -24,7 +28,9 @@ func (cmd *TrainingCreateCmd) Validate() error {
 		cmd.ProjectName != nil &&
 		cmd.Name != nil &&
 		cmd.CodeDir != nil &&
-		cmd.BootFile != nil
+		cmd.BootFile != nil &&
+		cmd.ProjectId != "" &&
+		cmd.TrainingId != ""
 
 	if !b {
 		return err
@@ -67,6 +73,7 @@ func (cmd *TrainingCreateCmd) Validate() error {
 type JobInfoDTO struct {
 	JobId     string `json:"job_id"`
 	LogDir    string `json:"log_dir"`
+	AimDir    string `json:"aim_dir"`
 	OutputDir string `json:"output_dir"`
 }
 
@@ -79,31 +86,58 @@ type TrainingService interface {
 	Create(cmd *TrainingCreateCmd) (JobInfoDTO, error)
 	Delete(jobId string) error
 	Terminate(jobId string) error
-	Get(jobId string) (dto JobDetailDTO, err error)
 	GetLogDownloadURL(jobId string) (string, error)
 }
 
 func NewTrainingService(
 	ts training.Training,
-	h syncrepo.SyncRepo,
-	lock synclock.RepoSyncLock,
-	p platform.Platform,
+	pf platform.Platform,
+	ws watch.WatchService,
 	log *logrus.Entry,
+	lock synclock.RepoSyncLock,
+	maxTrainingNum int,
 ) TrainingService {
-	return trainingService{
+	t := &trainingService{
 		ts:  ts,
+		ws:  ws,
 		log: log,
-		ss:  newSyncService(h, lock, p, log),
+		ss:  newSyncService(ts, pf, log, lock),
+
+		maxTrainingNum: maxTrainingNum,
 	}
+
+	ws.RegisterTrainingDone(t.callback)
+
+	return t
 }
 
 type trainingService struct {
 	ss  *syncService
 	log *logrus.Entry
 	ts  training.Training
+	ws  watch.WatchService
+
+	lock           sync.RWMutex
+	currentNum     int
+	maxTrainingNum int
 }
 
-func (s trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err error) {
+func (s *trainingService) callback(*watch.TrainingInfo) {
+	s.lock.Lock()
+	s.currentNum--
+	s.lock.Unlock()
+}
+
+func (s *trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if s.currentNum >= s.maxTrainingNum {
+		err = errors.New("too many trainings")
+
+		return
+	}
+
 	err = s.ss.syncProject(cmd.User, cmd.ProjectName, cmd.ProjectRepoId)
 	if err != nil {
 		s.log.Debug("sync project failed")
@@ -125,35 +159,35 @@ func (s trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err err
 	}
 
 	v, err := s.ts.Create(&cmd.UserTraining)
-	if err == nil {
-		dto.JobId = v.JobId
-		dto.LogDir = v.LogDir
-		dto.OutputDir = v.OutputDir
-	}
-
-	return
-}
-
-func (s trainingService) Delete(jobId string) error {
-	return s.ts.Delete(jobId)
-}
-
-func (s trainingService) Terminate(jobId string) error {
-	return s.ts.Terminate(jobId)
-}
-
-func (s trainingService) Get(jobId string) (dto JobDetailDTO, err error) {
-	v, err := s.ts.Get(jobId)
 	if err != nil {
 		return
 	}
 
-	dto.Status = v.Status.TrainingStatus()
-	dto.Duration = v.Duration
+	dto.JobId = v.JobId
+	dto.LogDir = v.LogDir
+	dto.AimDir = v.AimDir
+	dto.OutputDir = v.OutputDir
+
+	s.ws.WatchTraining(&watch.TrainingInfo{
+		User:       cmd.User,
+		ProjectId:  cmd.ProjectId,
+		TrainingId: cmd.TrainingId,
+		JobInfo:    v,
+	})
+
+	s.currentNum++
 
 	return
 }
 
-func (s trainingService) GetLogDownloadURL(jobId string) (string, error) {
+func (s *trainingService) Delete(jobId string) error {
+	return s.ts.Delete(jobId)
+}
+
+func (s *trainingService) Terminate(jobId string) error {
+	return s.ts.Terminate(jobId)
+}
+
+func (s *trainingService) GetLogDownloadURL(jobId string) (string, error) {
 	return s.ts.GetLogDownloadURL(jobId)
 }
