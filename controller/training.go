@@ -4,30 +4,18 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/xihe-training-center/app"
-	"github.com/opensourceways/xihe-training-center/domain/platform"
-	"github.com/opensourceways/xihe-training-center/domain/synclock"
-	"github.com/opensourceways/xihe-training-center/domain/syncrepo"
-	"github.com/opensourceways/xihe-training-center/domain/training"
 )
 
 func AddRouterForTrainingController(
 	rg *gin.RouterGroup,
-	ts training.Training,
-	h syncrepo.SyncRepo,
-	lock synclock.RepoSyncLock,
-	p platform.Platform,
-	log *logrus.Entry,
+	ts app.TrainingService,
 ) {
-	ctl := TrainingController{
-		ts: app.NewTrainingService(ts, h, lock, p, log),
-	}
+	ctl := TrainingController{ts: ts}
 
 	rg.POST("/v1/training", ctl.Create)
 	rg.DELETE("/v1/training/:id", ctl.Delete)
-	rg.GET("/v1/training/:id", ctl.Get)
 	rg.PUT("/v1/training/:id", ctl.Terminate)
 	rg.GET("/v1/training/:id/log", ctl.GetLog)
 }
@@ -110,25 +98,6 @@ func (ctl *TrainingController) Terminate(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusAccepted, newResponseData("success"))
-}
-
-// @Summary Get
-// @Description get training info
-// @Tags  Training
-// @Param	id	path	string	true	"id of training"
-// @Accept json
-// @Success 200 {object} app.TrainingDTO
-// @Failure 500 system_error        system error
-// @Router /v1/training/{id} [get]
-func (ctl *TrainingController) Get(ctx *gin.Context) {
-	v, err := ctl.ts.Get(ctx.Param("id"))
-	if err != nil {
-		ctl.sendRespWithInternalError(ctx, newResponseError(err))
-
-		return
-	}
-
-	ctx.JSON(http.StatusAccepted, newResponseData(v))
 }
 
 // @Summary GetLog

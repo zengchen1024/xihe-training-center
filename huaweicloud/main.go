@@ -8,6 +8,7 @@ import (
 	liboptions "github.com/opensourceways/community-robot-lib/options"
 	"github.com/sirupsen/logrus"
 
+	"github.com/opensourceways/xihe-training-center/app"
 	"github.com/opensourceways/xihe-training-center/controller"
 	"github.com/opensourceways/xihe-training-center/docs"
 	"github.com/opensourceways/xihe-training-center/domain"
@@ -16,6 +17,7 @@ import (
 	"github.com/opensourceways/xihe-training-center/infrastructure/mysql"
 	"github.com/opensourceways/xihe-training-center/infrastructure/platformimpl"
 	"github.com/opensourceways/xihe-training-center/infrastructure/synclockimpl"
+	"github.com/opensourceways/xihe-training-center/infrastructure/watchimpl"
 	"github.com/opensourceways/xihe-training-center/server"
 )
 
@@ -90,19 +92,28 @@ func main() {
 
 	lock := synclockimpl.NewRepoSyncLock(mysql.NewSyncLockMapper())
 
-	// run
+	// training
 	ts, err := trainingimpl.NewTraining(&cfg.Training)
 	if err != nil {
 		logrus.Fatalf("new training center, err:%s", err.Error())
 	}
 
+	// watch
+	ws, err := watchimpl.NewWatcher(&cfg.Watch, ts, cfg.MaxTrainingNum, log)
+	if err != nil {
+		log.Errorf("new watch service failed, err:%s", err.Error())
+	}
+
+	service := app.NewTrainingService(ts, sync, p, ws, log, lock, cfg.MaxTrainingNum)
+
+	go ws.Run()
+
+	defer ws.Exit()
+
 	server.StartWebServer(docs.SwaggerInfo, &server.Service{
 		Port:     o.service.Port,
 		Timeout:  o.service.GracePeriod,
-		Sync:     sync,
-		Lock:     lock,
 		Log:      log,
-		Platform: p,
-		Training: ts,
+		Training: service,
 	})
 }

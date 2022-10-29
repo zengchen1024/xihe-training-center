@@ -1,11 +1,15 @@
-package watch
+package watchimpl
 
 type Config struct {
-	// MaxTrainingNum specifies the max num of training
-	// which the training center can support
-	MaxTrainingNum int `json:"max_training_num"`
-
 	// Interval specifies the interval of second between two loops
 	// that check all trainings in a loop.
 	Interval int `json:"interval"`
+
+	Endpoint string `json:"endpoint" required:"true"`
+}
+
+func (cfg *Config) SetDefault() {
+	if cfg.Interval <= 0 {
+		cfg.Interval = 10
+	}
 }

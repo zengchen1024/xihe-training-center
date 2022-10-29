@@ -19,13 +19,13 @@ const obsPrefix = "obs://"
 
 var statusMap = map[string]domain.TrainingStatus{
 	"failed":      domain.TrainingStatusFailed,
-	"pending":     domain.TrainingStatusPending,
+	"pending":     domain.TrainingStatusRunning,
 	"running":     domain.TrainingStatusRunning,
-	"creating":    domain.TrainingStatusCreating,
-	"abnormal":    domain.TrainingStatusAbnormal,
+	"creating":    domain.TrainingStatusRunning,
+	"abnormal":    domain.TrainingStatusFailed,
 	"completed":   domain.TrainingStatusCompleted,
 	"terminated":  domain.TrainingStatusTerminated,
-	"terminating": domain.TrainingStatusTerminating,
+	"terminating": domain.TrainingStatusTerminated,
 }
 
 func NewTraining(cfg *Config) (training.Training, error) {
@@ -100,7 +100,7 @@ func (impl trainingImpl) genJobParameter(t *domain.UserTraining, opt *modelarts.
 	}
 }
 
-func (impl trainingImpl) Create(t *domain.UserTraining) (info training.JobInfo, err error) {
+func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, err error) {
 	desc := ""
 	if t.Desc != nil {
 		desc = t.Desc.TrainingDesc()
@@ -181,7 +181,7 @@ func (impl trainingImpl) Delete(jobId string) error {
 	return modelarts.DeleteJob(impl.cli, jobId)
 }
 
-func (impl trainingImpl) Get(jobId string) (r domain.JobDetail, err error) {
+func (impl trainingImpl) GetDetail(jobId string) (r domain.JobDetail, err error) {
 	v, err := modelarts.GetJob(impl.cli, jobId)
 	if err != nil {
 		return
@@ -190,7 +190,7 @@ func (impl trainingImpl) Get(jobId string) (r domain.JobDetail, err error) {
 	if status, ok := statusMap[strings.ToLower(v.Status.Phase)]; ok {
 		r.Status = status
 	} else {
-		r.Status = domain.TrainingStatusAbnormal
+		r.Status = domain.TrainingStatusFailed
 	}
 
 	r.Duration = v.Status.Duration
@@ -204,4 +204,21 @@ func (impl trainingImpl) Terminate(jobId string) error {
 
 func (impl trainingImpl) GetLogDownloadURL(jobId string) (string, error) {
 	return modelarts.GetLogDownloadURL(impl.cli, jobId)
+}
+
+// GetLogFilePath return the obs path of log
+func (impl trainingImpl) GetLogFilePath(logDir string) (string, error) {
+	return "", nil
+}
+
+// GenOutput generates the zip file of output dir and
+// return the obs path of that file.
+func (impl trainingImpl) GenOutput(outputDir string) (string, error) {
+	return "", nil
+}
+
+// GenAim generates the zip file of aim dir
+// and return the obs path of that file.
+func (impl trainingImpl) GenAim(aimDir string) (string, error) {
+	return "", nil
 }
