@@ -30,16 +30,17 @@ var statusMap = map[string]domain.TrainingStatus{
 
 func NewTraining(cfg *Config) (training.Training, error) {
 	s := "modelarts"
+	mc := &cfg.Modelarts
 	v := client.Config{
-		AccessKey:  cfg.AccessKey,
-		SecretKey:  cfg.SecretKey,
-		TenantName: cfg.ProjectName,
-		TenantID:   cfg.ProjectId,
-		Region:     cfg.Region,
+		AccessKey:  mc.AccessKey,
+		SecretKey:  mc.SecretKey,
+		TenantName: mc.ProjectName,
+		TenantID:   mc.ProjectId,
+		Region:     mc.Region,
 		Endpoints: map[string]string{
-			s: cfg.Endpoint,
+			s: mc.Endpoint,
 		},
-		IdentityEndpoint: fmt.Sprintf("https://iam.%s.myhuaweicloud.com:443/v3", cfg.Region),
+		IdentityEndpoint: fmt.Sprintf("https://iam.%s.myhuaweicloud.com:443/v3", mc.Region),
 	}
 	if err := v.LoadAndValidate(); err != nil {
 		return nil, err
@@ -52,10 +53,16 @@ func NewTraining(cfg *Config) (training.Training, error) {
 		return nil, err
 	}
 
+	h, err := newHelper(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	return trainingImpl{
 		cli:         cli,
-		config:      cfg.TrainingConfig,
-		obsRepoPath: filepath.Join(cfg.OBSBucket, cfg.OBSRepoPath),
+		config:      cfg.Train,
+		helper:      h,
+		obsRepoPath: filepath.Join(cfg.OBS.Bucket, cfg.Train.OBSRepoPath),
 	}, nil
 }
 
@@ -63,6 +70,8 @@ type trainingImpl struct {
 	cli         *golangsdk.ServiceClient
 	config      TrainingConfig
 	obsRepoPath string
+
+	*helper
 }
 
 func (impl trainingImpl) genJobParameter(t *domain.UserTraining, opt *modelarts.JobCreateOption) {
@@ -204,21 +213,4 @@ func (impl trainingImpl) Terminate(jobId string) error {
 
 func (impl trainingImpl) GetLogDownloadURL(jobId string) (string, error) {
 	return modelarts.GetLogDownloadURL(impl.cli, jobId)
-}
-
-// GetLogFilePath return the obs path of log
-func (impl trainingImpl) GetLogFilePath(logDir string) (string, error) {
-	return "", nil
-}
-
-// GenOutput generates the zip file of output dir and
-// return the obs path of that file.
-func (impl trainingImpl) GenOutput(outputDir string) (string, error) {
-	return "", nil
-}
-
-// GenAim generates the zip file of aim dir
-// and return the obs path of that file.
-func (impl trainingImpl) GenAim(aimDir string) (string, error) {
-	return "", nil
 }

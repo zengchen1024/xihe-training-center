@@ -9,7 +9,6 @@ import (
 	"github.com/opensourceways/xihe-training-center/domain"
 	"github.com/opensourceways/xihe-training-center/domain/platform"
 	"github.com/opensourceways/xihe-training-center/domain/synclock"
-	"github.com/opensourceways/xihe-training-center/domain/syncrepo"
 	"github.com/opensourceways/xihe-training-center/domain/training"
 	"github.com/opensourceways/xihe-training-center/domain/watch"
 )
@@ -92,7 +91,6 @@ type TrainingService interface {
 
 func NewTrainingService(
 	ts training.Training,
-	sr syncrepo.SyncRepo,
 	pf platform.Platform,
 	ws watch.WatchService,
 	log *logrus.Entry,
@@ -103,7 +101,7 @@ func NewTrainingService(
 		ts:  ts,
 		ws:  ws,
 		log: log,
-		ss:  newSyncService(sr, lock, pf, log),
+		ss:  newSyncService(ts, pf, log, lock),
 
 		maxTrainingNum: maxTrainingNum,
 	}

@@ -12,7 +12,6 @@ import (
 	"github.com/opensourceways/xihe-training-center/controller"
 	"github.com/opensourceways/xihe-training-center/docs"
 	"github.com/opensourceways/xihe-training-center/domain"
-	"github.com/opensourceways/xihe-training-center/huaweicloud/syncrepoimpl"
 	"github.com/opensourceways/xihe-training-center/huaweicloud/trainingimpl"
 	"github.com/opensourceways/xihe-training-center/infrastructure/mysql"
 	"github.com/opensourceways/xihe-training-center/infrastructure/platformimpl"
@@ -73,12 +72,6 @@ func main() {
 	// controller
 	controller.Init(log)
 
-	// sync repo
-	sync, err := syncrepoimpl.NewSyncRepo(&cfg.Sync)
-	if err != nil {
-		logrus.Fatalf("init sync repo failed, err:%s", err.Error())
-	}
-
 	// gitlab
 	p, err := platformimpl.NewPlatform(&cfg.Gitlab)
 	if err != nil {
@@ -93,7 +86,7 @@ func main() {
 	lock := synclockimpl.NewRepoSyncLock(mysql.NewSyncLockMapper())
 
 	// training
-	ts, err := trainingimpl.NewTraining(&cfg.Training)
+	ts, err := trainingimpl.NewTraining(&cfg.Train)
 	if err != nil {
 		logrus.Fatalf("new training center, err:%s", err.Error())
 	}
@@ -104,7 +97,7 @@ func main() {
 		log.Errorf("new watch service failed, err:%s", err.Error())
 	}
 
-	service := app.NewTrainingService(ts, sync, p, ws, log, lock, cfg.MaxTrainingNum)
+	service := app.NewTrainingService(ts, p, ws, log, lock, cfg.MaxTrainingNum)
 
 	go ws.Run()
 
