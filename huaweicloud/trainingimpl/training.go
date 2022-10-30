@@ -15,7 +15,10 @@ import (
 	"github.com/opensourceways/xihe-training-center/huaweicloud/modelarts"
 )
 
-const obsPrefix = "obs://"
+const (
+	obsPrefix    = "obs://"
+	obsDelimiter = "/"
+)
 
 var statusMap = map[string]domain.TrainingStatus{
 	"failed":      domain.TrainingStatusFailed,
@@ -62,7 +65,7 @@ func NewTraining(cfg *Config) (training.Training, error) {
 		cli:         cli,
 		config:      cfg.Train,
 		helper:      h,
-		obsRepoPath: filepath.Join(cfg.OBS.Bucket, cfg.SyncAndUpload.RepoPath),
+		obsRepoPath: cfg.OBS.Bucket + obsDelimiter + cfg.SyncAndUpload.RepoPath,
 	}, nil
 }
 
@@ -117,11 +120,11 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 
 	cfg := &impl.config
 	obs := filepath.Join(impl.obsRepoPath, t.ToPath())
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 
-	info.LogDir = filepath.Join(obs, cfg.LogDir, timestamp) + "/"
-	info.AimDir = filepath.Join(obs, cfg.AimDir, timestamp) + "/"
-	info.OutputDir = filepath.Join(obs, cfg.OutputDir, timestamp) + "/"
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	logDir := filepath.Join(obs, cfg.LogDir, timestamp) + obsDelimiter
+	aimDir := filepath.Join(obs, cfg.AimDir, timestamp) + obsDelimiter
+	outputDir := filepath.Join(obs, cfg.OutputDir, timestamp) + obsDelimiter
 
 	opt := modelarts.JobCreateOption{
 		Kind: "job",
@@ -130,7 +133,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 			Desc: desc,
 		},
 		Algorithm: modelarts.AlgorithmOption{
-			CodeDir:  obsPrefix + filepath.Join(obs, t.CodeDir.Directory()) + "/",
+			CodeDir:  obsPrefix + filepath.Join(obs, t.CodeDir.Directory()) + obsDelimiter,
 			BootFile: obsPrefix + filepath.Join(obs, t.CodeDir.Directory(), t.BootFile.FilePath()),
 			Engine: modelarts.EngineOption{
 				EngineName:    t.Compute.Type.ComputeType(),
@@ -141,7 +144,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 					Name: cfg.OutputKey,
 					Remote: modelarts.RemoteOption{
 						OBS: modelarts.OBSOption{
-							OBSURL: obsPrefix + info.OutputDir,
+							OBSURL: obsPrefix + outputDir,
 						},
 					},
 				},
@@ -149,7 +152,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 					Name: cfg.AimKey,
 					Remote: modelarts.RemoteOption{
 						OBS: modelarts.OBSOption{
-							OBSURL: obsPrefix + info.AimDir,
+							OBSURL: obsPrefix + aimDir,
 						},
 					},
 				},
@@ -161,7 +164,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 				NodeCount: 1,
 			},
 			LogExportPath: modelarts.LogExportPathOption{
-				OBSURL: obsPrefix + info.LogDir,
+				OBSURL: obsPrefix + logDir,
 			},
 		},
 	}
@@ -173,7 +176,12 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 	impl.genJobParameter(t, &opt)
 
 	info.JobId, err = modelarts.CreateJob(impl.cli, opt)
-
+	if err == nil {
+		p := impl.bucket + obsDelimiter
+		info.AimDir = strings.TrimPrefix(aimDir, p)
+		info.LogDir = strings.TrimPrefix(logDir, p)
+		info.OutputDir = strings.TrimPrefix(outputDir, p)
+	}
 	return
 }
 
@@ -186,7 +194,7 @@ func (impl trainingImpl) genInputOption(kv []domain.Input) []modelarts.InputOutp
 			Remote: modelarts.RemoteOption{
 				OBS: modelarts.OBSOption{
 					// v.Value maybe a directory.
-					OBSURL: obsPrefix + impl.obsRepoPath + "/" + v.ToPath(),
+					OBSURL: obsPrefix + impl.obsRepoPath + obsDelimiter + v.ToPath(),
 				},
 			},
 		}
