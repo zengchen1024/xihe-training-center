@@ -98,11 +98,16 @@ func (w *Watcher) Run() {
 
 	start := time.Now()
 
+	// add the tag
+	w.trainings <- trainingInfo{}
+
 	for {
 		select {
 		case info := <-w.trainings:
 			// use =="" stands for the case that the loop is done
 			if info.User == nil {
+				w.log.Debug("finish a loop")
+
 				t := start.Add(w.interval)
 
 				if n := time.Now(); t.After(n) {
