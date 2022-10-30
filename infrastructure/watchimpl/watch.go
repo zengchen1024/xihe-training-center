@@ -115,6 +115,7 @@ func (w *Watcher) Run() {
 
 			} else {
 				changed := w.check(&info)
+				w.log.Debugf("check training %s/%s", info.TrainingId, info.JobId)
 
 				if info.isDone() {
 					index := info.toIndex()
@@ -122,13 +123,16 @@ func (w *Watcher) Run() {
 					if err := w.cli.SetTrainingInfo(&index, &info.result); err == nil {
 						w.callback(&info.TrainingInfo)
 					} else {
+						w.log.Errorf("set training info failed, err:%s", err.Error())
 						w.trainings <- info
 					}
 
 				} else {
 					if changed {
 						index := info.toIndex()
-						w.cli.SetTrainingInfo(&index, &info.result)
+						if err := w.cli.SetTrainingInfo(&index, &info.result); err != nil {
+							w.log.Errorf("set training info failed, err:%s", err.Error())
+						}
 					}
 
 					w.trainings <- info
