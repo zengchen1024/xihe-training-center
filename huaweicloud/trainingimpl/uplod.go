@@ -24,8 +24,11 @@ func (s *helper) GetLogFilePath(logDir string) (p string, err error) {
 		return
 	}
 
-	if v := output.Contents; len(v) > 0 {
-		p = v[0].Key
+	v := output.Contents
+	for i := range v {
+		if p = v[i].Key; p != logDir {
+			break
+		}
 	}
 
 	return
