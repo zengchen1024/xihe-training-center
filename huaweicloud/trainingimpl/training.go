@@ -211,7 +211,8 @@ func (impl trainingImpl) GetDetail(jobId string) (r domain.JobDetail, err error)
 		r.Status = domain.TrainingStatusFailed
 	}
 
-	r.Duration = v.Status.Duration
+	// convert millisecond to second
+	r.Duration = v.Status.Duration / 1000
 
 	return
 }
