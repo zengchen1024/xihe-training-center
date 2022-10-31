@@ -154,7 +154,7 @@ func (s *trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err er
 		if err = s.ss.checkResourceReady(dep); err != nil {
 			s.log.Debugf(
 				"check dependent resource:%s failed, err:%s",
-				dep.ToPath(), err.Error(),
+				dep.ToRepoPath(), err.Error(),
 			)
 
 			return

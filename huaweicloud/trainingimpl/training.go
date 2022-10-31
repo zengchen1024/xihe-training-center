@@ -119,7 +119,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 	}
 
 	cfg := &impl.config
-	obs := filepath.Join(impl.obsRepoPath, t.ToPath())
+	obs := filepath.Join(impl.obsRepoPath, t.ToRepoPath())
 
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	logDir := filepath.Join(obs, cfg.LogDir, timestamp) + obsDelimiter

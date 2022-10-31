@@ -1,6 +1,8 @@
 package training
 
 import (
+	"path/filepath"
+
 	"github.com/opensourceways/xihe-training-center/domain"
 )
 
@@ -10,6 +12,13 @@ type ProjectInfo struct {
 	RepoId      string
 	RepoURL     string
 	StartCommit string
+}
+
+func (p *ProjectInfo) ToRepoPath() string {
+	return filepath.Join(
+		p.Owner.Account(),
+		domain.ResourceTypeProject.ResourceType(), p.RepoId,
+	)
 }
 
 type Training interface {
