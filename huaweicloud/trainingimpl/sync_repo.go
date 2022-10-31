@@ -56,7 +56,7 @@ type helper struct {
 func (s *helper) GetRepoSyncedCommit(i *domain.ResourceRef) (
 	c string, err error,
 ) {
-	p := filepath.Join(s.suc.RepoPath, i.ToPath(), s.suc.CommitFile)
+	p := filepath.Join(s.suc.RepoPath, i.ToRepoPath(), s.suc.CommitFile)
 
 	err = utils.Retry(func() error {
 		v, err := s.getObject(p)
@@ -102,11 +102,7 @@ func (s *helper) SyncProject(repo *training.ProjectInfo) (lastCommit string, err
 
 	defer os.RemoveAll(tempDir)
 
-	obsRepoPath := filepath.Join(
-		cfg.RepoPath,
-		repo.Owner.Account(),
-		domain.ResourceTypeProject.ResourceType(), repo.RepoId,
-	)
+	obsRepoPath := filepath.Join(cfg.RepoPath, repo.ToRepoPath())
 
 	params := []string{
 		cfg.SyncFileShell, tempDir,

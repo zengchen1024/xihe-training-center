@@ -10,7 +10,7 @@ type UserTraining struct {
 	TrainingConfig
 }
 
-func (t *UserTraining) ToPath() string {
+func (t *UserTraining) ToRepoPath() string {
 	return filepath.Join(
 		t.User.Account(),
 		ResourceTypeProject.ResourceType(), t.ProjectRepoId,
@@ -57,19 +57,18 @@ type ResourceRef struct {
 	File   string
 }
 
-func (r *ResourceRef) ToPath() string {
-	s := filepath.Join(
-		r.User.Account(), r.Type.ResourceType(),
-		r.RepoId, r.File,
+func (r *ResourceRef) ToRepoPath() string {
+	return filepath.Join(
+		r.User.Account(), r.Type.ResourceType(), r.RepoId,
 	)
+}
 
-	if r.File == "" {
-		// The input is the directory. Appending "/" to make sure
-		// the path is a directory for object storage service.
-		return s + "/"
-	}
+func (r *ResourceRef) ToPath() string {
+	s := r.ToRepoPath()
 
-	return s
+	// The input is the directory. Appending "/" to make sure
+	// the path is a directory for object storage service.
+	return s + "/" + r.File
 }
 
 type JobDetail struct {
