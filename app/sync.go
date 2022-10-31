@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/opensourceways/xihe-training-center/domain"
 	"github.com/opensourceways/xihe-training-center/domain/platform"
@@ -39,7 +40,7 @@ func (s *syncService) checkResourceReady(i *domain.ResourceRef) error {
 	}
 
 	if c == "" {
-		return errors.New("not ready")
+		return errors.New("no synced commit")
 	}
 
 	lastCommit, err := s.p.GetLastCommit(i.RepoId)
@@ -48,7 +49,7 @@ func (s *syncService) checkResourceReady(i *domain.ResourceRef) error {
 	}
 
 	if string(c) != lastCommit {
-		return errors.New("not ready")
+		return fmt.Errorf("not ready, %s != %s", string(c), lastCommit)
 	}
 
 	return nil
