@@ -140,7 +140,10 @@ func (s *trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err er
 
 	err = s.ss.syncProject(cmd.User, cmd.ProjectName, cmd.ProjectRepoId)
 	if err != nil {
-		s.log.Debug("sync project failed")
+		s.log.Debugf(
+			"sync project(%s) failed",
+			cmd.User.Account(), cmd.ProjectId,
+		)
 
 		return
 	}
@@ -150,8 +153,8 @@ func (s *trainingService) Create(cmd *TrainingCreateCmd) (dto JobInfoDTO, err er
 
 		if err = s.ss.checkResourceReady(dep); err != nil {
 			s.log.Debugf(
-				"check dependent resource:%s failed",
-				dep.ToPath(),
+				"check dependent resource:%s failed, err:%s",
+				dep.ToPath(), err.Error(),
 			)
 
 			return
