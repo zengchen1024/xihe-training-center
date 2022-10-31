@@ -16,7 +16,6 @@ import (
 )
 
 const (
-	obsPrefix    = "obs://"
 	obsDelimiter = "/"
 )
 
@@ -65,7 +64,7 @@ func NewTraining(cfg *Config) (training.Training, error) {
 		cli:         cli,
 		config:      cfg.Train,
 		helper:      h,
-		obsRepoPath: cfg.OBS.Bucket + obsDelimiter + cfg.SyncAndUpload.RepoPath,
+		obsRepoPath: filepath.Join(obsDelimiter, cfg.OBS.Bucket, cfg.SyncAndUpload.RepoPath),
 	}, nil
 }
 
@@ -133,8 +132,8 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 			Desc: desc,
 		},
 		Algorithm: modelarts.AlgorithmOption{
-			CodeDir:  obsPrefix + filepath.Join(obs, t.CodeDir.Directory()) + obsDelimiter,
-			BootFile: obsPrefix + filepath.Join(obs, t.CodeDir.Directory(), t.BootFile.FilePath()),
+			CodeDir:  filepath.Join(obs, t.CodeDir.Directory()) + obsDelimiter,
+			BootFile: filepath.Join(obs, t.CodeDir.Directory(), t.BootFile.FilePath()),
 			Engine: modelarts.EngineOption{
 				EngineName:    t.Compute.Type.ComputeType(),
 				EngineVersion: t.Compute.Version.ComputeVersion(),
@@ -144,7 +143,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 					Name: cfg.OutputKey,
 					Remote: modelarts.RemoteOption{
 						OBS: modelarts.OBSOption{
-							OBSURL: obsPrefix + outputDir,
+							OBSURL: outputDir,
 						},
 					},
 				},
@@ -152,7 +151,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 					Name: cfg.AimKey,
 					Remote: modelarts.RemoteOption{
 						OBS: modelarts.OBSOption{
-							OBSURL: obsPrefix + aimDir,
+							OBSURL: aimDir,
 						},
 					},
 				},
@@ -164,7 +163,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 				NodeCount: 1,
 			},
 			LogExportPath: modelarts.LogExportPathOption{
-				OBSURL: obsPrefix + logDir,
+				OBSURL: logDir,
 			},
 		},
 	}
@@ -194,7 +193,7 @@ func (impl trainingImpl) genInputOption(kv []domain.Input) []modelarts.InputOutp
 			Remote: modelarts.RemoteOption{
 				OBS: modelarts.OBSOption{
 					// v.Value maybe a directory.
-					OBSURL: obsPrefix + impl.obsRepoPath + obsDelimiter + v.ToPath(),
+					OBSURL: impl.obsRepoPath + obsDelimiter + v.ToPath(),
 				},
 			},
 		}
