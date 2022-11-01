@@ -61,17 +61,23 @@ func NewTraining(cfg *Config) (training.Training, error) {
 	}
 
 	return trainingImpl{
-		cli:         cli,
-		config:      cfg.Train,
-		helper:      h,
-		obsRepoPath: filepath.Join(obsDelimiter, cfg.OBS.Bucket, cfg.SyncAndUpload.RepoPath),
+		cli:    cli,
+		config: cfg.Train,
+		helper: h,
+
+		obsRepoPath: filepath.Join(
+			obsDelimiter, cfg.OBS.Bucket, cfg.SyncAndUpload.RepoPath,
+		),
+		obsRepoPathPrefix: obsDelimiter + cfg.OBS.Bucket + obsDelimiter,
 	}, nil
 }
 
 type trainingImpl struct {
-	cli         *golangsdk.ServiceClient
-	config      TrainingConfig
-	obsRepoPath string
+	cli    *golangsdk.ServiceClient
+	config TrainingConfig
+
+	obsRepoPath       string
+	obsRepoPathPrefix string
 
 	*helper
 }
@@ -176,7 +182,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 
 	info.JobId, err = modelarts.CreateJob(impl.cli, opt)
 	if err == nil {
-		p := impl.bucket + obsDelimiter
+		p := impl.obsRepoPathPrefix
 		info.AimDir = strings.TrimPrefix(aimDir, p)
 		info.LogDir = strings.TrimPrefix(logDir, p)
 		info.OutputDir = strings.TrimPrefix(outputDir, p)
