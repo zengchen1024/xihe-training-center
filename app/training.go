@@ -87,6 +87,7 @@ type TrainingService interface {
 	Delete(jobId string) error
 	Terminate(jobId string) error
 	GetLogDownloadURL(jobId string) (string, error)
+	GenFileDownloadURL(obsfile string) (string, error)
 }
 
 func NewTrainingService(
@@ -193,4 +194,8 @@ func (s *trainingService) Terminate(jobId string) error {
 
 func (s *trainingService) GetLogDownloadURL(jobId string) (string, error) {
 	return s.ts.GetLogDownloadURL(jobId)
+}
+
+func (s *trainingService) GenFileDownloadURL(obsfile string) (string, error) {
+	return s.ts.GenFileDownloadURL(obsfile)
 }

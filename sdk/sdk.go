@@ -14,7 +14,7 @@ import (
 
 type TrainingCreateOption = controller.TrainingCreateRequest
 type ResourceRef = controller.ResourceRef
-type TrainingLog = controller.TrainingLogResp
+type DownloadURL = controller.TrainingResultResp
 type KeyValue = controller.KeyValue
 type Compute = controller.Compute
 type Input = controller.Input
@@ -23,8 +23,13 @@ type JobDetail = app.JobDetailDTO
 type JobInfo = app.JobInfoDTO
 
 func NewTrainingCenter(endpoint string) TrainingCenter {
+	s := strings.TrimSuffix(endpoint, "/")
+	if p := "api/v1/training"; !strings.HasSuffix(s, p) {
+		s += p
+	}
+
 	return TrainingCenter{
-		endpoint: strings.TrimSuffix(endpoint, "/"),
+		endpoint: s,
 		cli:      utils.NewHttpClient(3),
 	}
 }
@@ -88,8 +93,19 @@ func (t TrainingCenter) GetTraining(jobId string) (r JobDetail, err error) {
 	return
 }
 
-func (t TrainingCenter) GetLogDownloadURL(jobId string) (r TrainingLog, err error) {
+func (t TrainingCenter) GetLogDownloadURL(jobId string) (r DownloadURL, err error) {
 	req, err := http.NewRequest(http.MethodGet, t.jobURL(jobId)+"/log", nil)
+	if err != nil {
+		return
+	}
+
+	err = t.forwardTo(req, &r)
+
+	return
+}
+
+func (t TrainingCenter) GetResultDownloadURL(jobId, file string) (r DownloadURL, err error) {
+	req, err := http.NewRequest(http.MethodGet, t.jobURL(jobId)+"/result/"+file, nil)
 	if err != nil {
 		return
 	}

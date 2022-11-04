@@ -34,6 +34,21 @@ func (s *helper) GetLogFilePath(logDir string) (p string, err error) {
 	return
 }
 
+func (s *helper) GenFileDownloadURL(p string) (string, error) {
+	input := &obs.CreateSignedUrlInput{}
+	input.Method = obs.HttpMethodGet
+	input.Bucket = s.bucket
+	input.Key = p
+	input.Expires = s.suc.DownloadExpiry
+
+	output, err := s.obsClient.CreateSignedUrl(input)
+	if err != nil {
+		return "", err
+	}
+
+	return output.SignedUrl, nil
+}
+
 func (s *helper) GenOutput(outputDir string) (string, error) {
 	return s.uploadFolder(outputDir)
 }
