@@ -96,6 +96,16 @@ type SyncAndUploadConfig struct {
 
 	UploadWorkDir     string `json:"upload_work_dir"      required:"true"`
 	UploadFolderShell string `json:"upload_folder_shell"  required:"true"`
+
+	// DownloadExpiry specifies the timeout to download a obs file.
+	// The unit is second.
+	DownloadExpiry int `json:"download_expiry"`
+}
+
+func (c *SyncAndUploadConfig) setDefault() {
+	if c.DownloadExpiry <= 0 {
+		c.DownloadExpiry = 3600
+	}
 }
 
 func (c *SyncAndUploadConfig) validate() error {

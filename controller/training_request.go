@@ -7,8 +7,8 @@ import (
 	"github.com/opensourceways/xihe-training-center/domain"
 )
 
-type TrainingLogResp struct {
-	LogURL string `json:"log_url"`
+type TrainingResultResp struct {
+	URL string `json:"url"`
 }
 
 type TrainingCreateRequest struct {

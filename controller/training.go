@@ -18,6 +18,7 @@ func AddRouterForTrainingController(
 	rg.DELETE("/v1/training/:id", ctl.Delete)
 	rg.PUT("/v1/training/:id", ctl.Terminate)
 	rg.GET("/v1/training/:id/log", ctl.GetLog)
+	rg.GET("/v1/training/:id/result/:file", ctl.GetDownloadURL)
 }
 
 type TrainingController struct {
@@ -105,7 +106,7 @@ func (ctl *TrainingController) Terminate(ctx *gin.Context) {
 // @Tags  Training
 // @Param	id	path	string	true	"id of training"
 // @Accept json
-// @Success 200 {object} TrainingLogResp
+// @Success 200 {object} TrainingResultResp
 // @Failure 500 system_error        system error
 // @Router /v1/training/{id}/log [get]
 func (ctl *TrainingController) GetLog(ctx *gin.Context) {
@@ -116,5 +117,25 @@ func (ctl *TrainingController) GetLog(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusAccepted, newResponseData(TrainingLogResp{v}))
+	ctx.JSON(http.StatusOK, newResponseData(TrainingResultResp{v}))
+}
+
+// @Summary GetDownloadURL
+// @Description get download url of training result such as log or output.
+// @Tags  Training
+// @Param	id	path	string	true	"id of training"
+// @Param	file	path	string	true	"obs file path to download"
+// @Accept json
+// @Success 200 {object} TrainingResultResp
+// @Failure 500 system_error        system error
+// @Router /v1/training/{id}/result/{file} [get]
+func (ctl *TrainingController) GetDownloadURL(ctx *gin.Context) {
+	v, err := ctl.ts.GenFileDownloadURL(ctx.Param("file"))
+	if err != nil {
+		ctl.sendRespWithInternalError(ctx, newResponseError(err))
+
+		return
+	}
+
+	ctx.JSON(http.StatusOK, newResponseData(TrainingResultResp{v}))
 }

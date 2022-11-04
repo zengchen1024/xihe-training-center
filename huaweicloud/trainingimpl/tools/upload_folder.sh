@@ -38,4 +38,4 @@ fi
 
 $obsutil cp $work_dir/$file "obs://$bucket/$target" > /dev/null 2>&1
 
-echo $bucket/$target
+echo $target
