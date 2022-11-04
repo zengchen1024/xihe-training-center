@@ -3,8 +3,8 @@ package watchimpl
 import (
 	"time"
 
-	pt "github.com/opensourceways/xihe-grpc-protocol/training"
-	"github.com/opensourceways/xihe-grpc-protocol/training/client"
+	"github.com/opensourceways/xihe-grpc-protocol/grpc/client"
+	pt "github.com/opensourceways/xihe-grpc-protocol/grpc/training"
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/xihe-training-center/domain/training"
@@ -17,7 +17,7 @@ func NewWatcher(
 	cfg *Config, ts training.Training,
 	maxTrainingNum int, log *logrus.Entry,
 ) (*Watcher, error) {
-	cli, err := client.NewClient(cfg.Endpoint)
+	cli, err := client.NewTrainingClient(cfg.Endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (t *trainingInfo) isDone() bool {
 
 type Watcher struct {
 	log *logrus.Entry
-	cli *client.Client
+	cli *client.TrainingClient
 	ts  training.Training
 
 	interval time.Duration
