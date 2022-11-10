@@ -11,10 +11,7 @@ type UserTraining struct {
 }
 
 func (t *UserTraining) ToRepoPath() string {
-	return filepath.Join(
-		t.User.Account(),
-		ResourceTypeProject.ResourceType(), t.ProjectRepoId,
-	)
+	return filepath.Join(t.User.Account(), t.ProjectRepoId)
 }
 
 type TrainingConfig struct {
@@ -52,15 +49,12 @@ type Input struct {
 
 type ResourceRef struct {
 	User   Account
-	Type   ResourceType
 	RepoId string
 	File   string
 }
 
 func (r *ResourceRef) ToRepoPath() string {
-	return filepath.Join(
-		r.User.Account(), r.Type.ResourceType(), r.RepoId,
-	)
+	return filepath.Join(r.User.Account(), r.RepoId)
 }
 
 func (r *ResourceRef) ToPath() string {

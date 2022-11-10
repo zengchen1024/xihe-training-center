@@ -62,7 +62,7 @@ func (cmd *TrainingCreateCmd) Validate() error {
 	for i := range cmd.Inputs {
 		v := &cmd.Inputs[i]
 
-		if v.Key == nil || v.User == nil || v.Type == nil || v.RepoId == "" {
+		if v.Key == nil || v.User == nil || v.RepoId == "" {
 			return errors.New("invalide input")
 		}
 	}
