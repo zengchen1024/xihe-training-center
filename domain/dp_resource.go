@@ -2,7 +2,6 @@ package domain
 
 import (
 	"errors"
-	"strings"
 )
 
 const (
@@ -42,7 +41,7 @@ type ProjectName interface {
 }
 
 func NewProjectName(v string) (ProjectName, error) {
-	if v == "" || !strings.HasPrefix(v, resourceProject) {
+	if v == "" {
 		return nil, errors.New("invalid project name")
 	}
 
