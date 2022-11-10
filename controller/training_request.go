@@ -103,29 +103,18 @@ func (kv *Input) toInput() (r domain.Input, err error) {
 
 type ResourceRef struct {
 	Owner  string `json:"owner"`
-	Type   string `json:"type"`
 	RepoId string `json:"repo_id"`
 	File   string `json:"File"`
 }
 
 func (r *ResourceRef) toRef(i *domain.ResourceRef) (err error) {
-	if r.Owner == "" || r.Type == "" || r.RepoId == "" {
+	if r.Owner == "" || r.RepoId == "" {
 		err = errors.New("invalid resource input")
 
 		return
 	}
 
 	if i.User, err = domain.NewAccount(r.Owner); err != nil {
-		return
-	}
-
-	if i.Type, err = domain.NewResourceType(r.Type); err != nil {
-		return
-	}
-
-	if i.Type.ResourceType() == domain.ResourceTypeProject.ResourceType() {
-		err = errors.New("invalid resource type of input value")
-
 		return
 	}
 

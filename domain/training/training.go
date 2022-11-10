@@ -15,10 +15,7 @@ type ProjectInfo struct {
 }
 
 func (p *ProjectInfo) ToRepoPath() string {
-	return filepath.Join(
-		p.Owner.Account(),
-		domain.ResourceTypeProject.ResourceType(), p.RepoId,
-	)
+	return filepath.Join(p.Owner.Account(), p.RepoId)
 }
 
 type Training interface {
