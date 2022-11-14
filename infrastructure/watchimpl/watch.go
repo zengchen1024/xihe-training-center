@@ -84,7 +84,16 @@ type Watcher struct {
 }
 
 func (w *Watcher) WatchTraining(t *watch.TrainingInfo) {
-	w.trainings <- trainingInfo{TrainingInfo: *t}
+	info := trainingInfo{TrainingInfo: *t}
+	if t.AimDir == "" {
+		info.aimDone = true
+	}
+
+	if t.OutputDir == "" {
+		info.outputDone = true
+	}
+
+	w.trainings <- info
 }
 
 func (w *Watcher) RegisterTrainingDone(f func(*watch.TrainingInfo)) {
@@ -200,9 +209,12 @@ func (w *Watcher) check(info *trainingInfo) (changed bool) {
 		if v, err := w.ts.GenOutput(info.OutputDir); err != nil {
 			w.log.Errorf("generate output failed, err:%s", err.Error())
 		} else {
-			result.OutputZipPath = v
 			info.outputDone = true
-			changed = true
+
+			if v != "" {
+				result.OutputZipPath = v
+				changed = true
+			}
 		}
 	}
 
@@ -210,9 +222,12 @@ func (w *Watcher) check(info *trainingInfo) (changed bool) {
 		if v, err := w.ts.GenAim(info.AimDir); err != nil {
 			w.log.Errorf("generate aim failed, err:%s", err.Error())
 		} else {
-			result.AimZipPath = v
 			info.aimDone = true
-			changed = true
+
+			if v != "" {
+				result.AimZipPath = v
+				changed = true
+			}
 		}
 	}
 

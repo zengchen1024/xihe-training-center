@@ -27,6 +27,8 @@ type TrainingCreateRequest struct {
 	Hypeparameters []KeyValue `json:"hyperparameter"`
 	Env            []KeyValue `json:"evn"`
 	Inputs         []Input    `json:"inputs"`
+	EnableAim      bool       `json:"enable_aim"`
+	EnableOutput   bool       `json:"enable_output"`
 
 	Compute Compute `json:"compute"`
 }
@@ -168,6 +170,9 @@ func (req *TrainingCreateRequest) toCmd() (cmd app.TrainingCreateCmd, err error)
 	if cmd.Inputs, err = req.toInputs(req.Inputs); err != nil {
 		return
 	}
+
+	cmd.EnableAim = req.EnableAim
+	cmd.EnableOutput = req.EnableOutput
 
 	return
 }

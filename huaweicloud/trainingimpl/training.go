@@ -131,6 +131,28 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 	aimDir := filepath.Join(obs, cfg.AimDir, timestamp) + obsDelimiter
 	outputDir := filepath.Join(obs, cfg.OutputDir, timestamp) + obsDelimiter
 
+	outputs := []modelarts.InputOutputOption{}
+	if t.EnableAim {
+		outputs = append(outputs, modelarts.InputOutputOption{
+			Name: cfg.AimKey,
+			Remote: modelarts.RemoteOption{
+				OBS: modelarts.OBSOption{
+					OBSURL: aimDir,
+				},
+			},
+		})
+	}
+	if t.EnableOutput {
+		outputs = append(outputs, modelarts.InputOutputOption{
+			Name: cfg.OutputKey,
+			Remote: modelarts.RemoteOption{
+				OBS: modelarts.OBSOption{
+					OBSURL: outputDir,
+				},
+			},
+		})
+	}
+
 	opt := modelarts.JobCreateOption{
 		Kind: "job",
 		Metadata: modelarts.MetadataOption{
@@ -144,24 +166,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 				EngineName:    t.Compute.Type.ComputeType(),
 				EngineVersion: t.Compute.Version.ComputeVersion(),
 			},
-			Outputs: []modelarts.InputOutputOption{
-				{
-					Name: cfg.OutputKey,
-					Remote: modelarts.RemoteOption{
-						OBS: modelarts.OBSOption{
-							OBSURL: outputDir,
-						},
-					},
-				},
-				{
-					Name: cfg.AimKey,
-					Remote: modelarts.RemoteOption{
-						OBS: modelarts.OBSOption{
-							OBSURL: aimDir,
-						},
-					},
-				},
-			},
+			Outputs: outputs,
 		},
 		Spec: modelarts.SpecOption{
 			Resource: modelarts.ResourceOption{
@@ -181,12 +186,19 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 	impl.genJobParameter(t, &opt)
 
 	info.JobId, err = modelarts.CreateJob(impl.cli, opt)
+
 	if err == nil {
 		p := impl.obsRepoPathPrefix
-		info.AimDir = strings.TrimPrefix(aimDir, p)
 		info.LogDir = strings.TrimPrefix(logDir, p)
-		info.OutputDir = strings.TrimPrefix(outputDir, p)
+
+		if t.EnableAim {
+			info.AimDir = strings.TrimPrefix(aimDir, p)
+		}
+		if t.EnableOutput {
+			info.OutputDir = strings.TrimPrefix(outputDir, p)
+		}
 	}
+
 	return
 }
 

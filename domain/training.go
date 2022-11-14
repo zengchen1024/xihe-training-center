@@ -27,6 +27,8 @@ type TrainingConfig struct {
 	Hypeparameters []KeyValue
 	Env            []KeyValue
 	Inputs         []Input
+	EnableAim      bool
+	EnableOutput   bool
 
 	Compute Compute
 }

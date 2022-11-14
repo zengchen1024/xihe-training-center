@@ -25,6 +25,10 @@ dir=$(basename $obsDir)
 
 test -d $dir || exit 0
 
+if [ -n "$(find $dir -maxdepth 0 -empty)" ]; then
+    exit 0
+fi
+
 file=${dir}.tar.gz
 
 tar -zcf $file $dir
