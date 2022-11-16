@@ -174,16 +174,21 @@ func (w *Watcher) check(info *trainingInfo) (changed bool) {
 
 	if !info.done {
 		detail, err := w.ts.GetDetail(info.JobId)
-		if err != nil || detail.Status.TrainingStatus() == result.Status {
+		if err != nil {
 			return
 		}
 
-		result.Status = detail.Status.TrainingStatus()
-		result.Duration = detail.Duration
+		if s := detail.Status.TrainingStatus(); s != result.Status {
+			result.Status = s
+			changed = true
+		}
 
-		changed = true
+		if result.Duration != detail.Duration {
+			result.Duration = detail.Duration
+			changed = true
+		}
 
-		if !detail.Status.IsDone() {
+		if !changed || !detail.Status.IsDone() {
 			return
 		}
 
