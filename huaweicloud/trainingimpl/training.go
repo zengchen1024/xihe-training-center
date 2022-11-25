@@ -156,7 +156,7 @@ func (impl trainingImpl) Create(t *domain.UserTraining) (info domain.JobInfo, er
 	opt := modelarts.JobCreateOption{
 		Kind: "job",
 		Metadata: modelarts.MetadataOption{
-			Name: t.Name.TrainingName(),
+			Name: t.ProjectRepoId + "_" + t.Name.TrainingName(),
 			Desc: desc,
 		},
 		Algorithm: modelarts.AlgorithmOption{
