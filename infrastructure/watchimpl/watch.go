@@ -26,6 +26,7 @@ func NewWatcher(
 		log:       log,
 		cli:       cli,
 		ts:        ts,
+		timeout:   cfg.Timeout,
 		interval:  time.Duration(cfg.Interval) * time.Second,
 		stop:      make(chan struct{}),
 		stopped:   make(chan struct{}),
@@ -35,9 +36,6 @@ func NewWatcher(
 
 type trainingInfo struct {
 	watch.TrainingInfo
-
-	// TODO if timeout, ignore this work and set status to timeout
-	//timeout      int
 
 	result trainingData
 
@@ -58,8 +56,6 @@ func (t *trainingInfo) toIndex() pt.TrainingIndex {
 }
 
 func (t *trainingInfo) isDone() bool {
-	// TODO: check if timeout for this training. return true if timeout
-
 	done := t.done && t.logDone
 
 	if done && t.success {
@@ -74,6 +70,7 @@ type Watcher struct {
 	cli *client.TrainingClient
 	ts  training.Training
 
+	timeout  int
 	interval time.Duration
 
 	stop      chan struct{}
@@ -189,7 +186,21 @@ func (w *Watcher) check(info *trainingInfo) (changed bool) {
 		}
 
 		if !changed || !detail.Status.IsDone() {
-			return
+			if detail.Duration < w.timeout {
+				return
+			}
+
+			if err := w.ts.Terminate(info.JobId); err != nil {
+				w.log.Errorf(
+					"terminate the job(%s) failed, err:%s",
+					info.JobId, err.Error(),
+				)
+
+				return
+			}
+
+			result.Status = "Timeout"
+			changed = true
 		}
 
 		info.done = true
