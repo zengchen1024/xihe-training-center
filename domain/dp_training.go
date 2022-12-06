@@ -14,10 +14,14 @@ var (
 	reDirectory = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
 	reFilePath  = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")
 
-	TrainingStatusFailed     = trainingStatus("Failed")
-	TrainingStatusRunning    = trainingStatus("Running")
-	TrainingStatusCompleted  = trainingStatus("Completed")
-	TrainingStatusTerminated = trainingStatus("Terminated")
+	TrainingStatusFailed      = trainingStatus("Failed")
+	TrainingStatusPending     = trainingStatus("Pending")
+	TrainingStatusRunning     = trainingStatus("Running")
+	TrainingStatusCreating    = trainingStatus("Creating")
+	TrainingStatusAbnormal    = trainingStatus("Abnormal")
+	TrainingStatusCompleted   = trainingStatus("Completed")
+	TrainingStatusTerminated  = trainingStatus("Terminated")
+	TrainingStatusTerminating = trainingStatus("Terminating")
 )
 
 // Account
