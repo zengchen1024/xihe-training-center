@@ -21,13 +21,13 @@ const (
 
 var statusMap = map[string]domain.TrainingStatus{
 	"failed":      domain.TrainingStatusFailed,
-	"pending":     domain.TrainingStatusRunning,
+	"pending":     domain.TrainingStatusPending,
 	"running":     domain.TrainingStatusRunning,
-	"creating":    domain.TrainingStatusRunning,
-	"abnormal":    domain.TrainingStatusFailed,
+	"creating":    domain.TrainingStatusCreating,
+	"abnormal":    domain.TrainingStatusAbnormal,
 	"completed":   domain.TrainingStatusCompleted,
 	"terminated":  domain.TrainingStatusTerminated,
-	"terminating": domain.TrainingStatusTerminated,
+	"terminating": domain.TrainingStatusTerminating,
 }
 
 func NewTraining(cfg *Config) (training.Training, error) {
