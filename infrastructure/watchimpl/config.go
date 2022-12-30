@@ -11,7 +11,7 @@ type Config struct {
 
 	// MaxWatchNum specifies the max num of training
 	// which the training center can support
-	MaxWatchNum int `json:"max_training_num"`
+	MaxWatchNum int `json:"max_watch_num"`
 
 	Endpoint string `json:"endpoint" required:"true"`
 }
