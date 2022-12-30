@@ -69,12 +69,7 @@ func (cmd *TrainingCreateCmd) Validate() error {
 	return nil
 }
 
-type JobInfoDTO struct {
-	JobId     string `json:"job_id"`
-	LogDir    string `json:"log_dir"`
-	AimDir    string `json:"aim_dir"`
-	OutputDir string `json:"output_dir"`
-}
+type JobInfoDTO = domain.JobInfo
 
 type TrainingService interface {
 	Create(cmd *TrainingCreateCmd) (JobInfoDTO, error)
@@ -115,12 +110,7 @@ func (s *trainingService) Create(cmd *TrainingCreateCmd) (JobInfoDTO, error) {
 			return err
 		}
 
-		dto = JobInfoDTO{
-			JobId:     v.JobId,
-			LogDir:    v.LogDir,
-			AimDir:    v.AimDir,
-			OutputDir: v.OutputDir,
-		}
+		dto = v
 
 		*info = watch.TrainingInfo{
 			User:       cmd.User,
