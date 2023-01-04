@@ -24,11 +24,11 @@ type TrainingConfig struct {
 	CodeDir  Directory
 	BootFile FilePath
 
-	Hypeparameters []KeyValue
-	Env            []KeyValue
-	Inputs         []Input
-	EnableAim      bool
-	EnableOutput   bool
+	Hyperparameters []KeyValue
+	Env             []KeyValue
+	Inputs          []Input
+	EnableAim       bool
+	EnableOutput    bool
 
 	Compute Compute
 }
